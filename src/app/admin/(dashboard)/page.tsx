@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { DashboardCharts } from "@/components/admin/DashboardCharts";
 
 export default async function AdminHomePage() {
-  const [works, enquiries, unread, recentWorks, allWorks] = await Promise.all([
+  const [works, enquiries, unread, recentWorks, allWorks, settings] = await Promise.all([
     prisma.work.count(),
     prisma.enquiry.count(),
     prisma.enquiry.count({ where: { status: "new" } }),
@@ -16,6 +16,7 @@ export default async function AdminHomePage() {
     prisma.work.findMany({
       select: { category: true, year: true },
     }),
+    prisma.setting.findUnique({ where: { id: "studio" } }),
   ]);
 
   const categoryMap = new Map<string, number>();
@@ -92,6 +93,45 @@ export default async function AdminHomePage() {
       </div>
 
       <DashboardCharts byCategory={byCategory} byYear={byYear} />
+
+      <Link
+        href="/admin/settings"
+        className="dash-card mt-10 block overflow-hidden p-0"
+      >
+        <div className="grid md:grid-cols-5">
+          <div className="relative aspect-video bg-black md:col-span-2 md:aspect-auto">
+            {settings?.showreelUrl ? (
+              <video
+                src={
+                  settings.showreelUrl.includes("youtube") ||
+                  settings.showreelUrl.includes("vimeo") ||
+                  settings.showreelUrl.includes("youtu.be")
+                    ? undefined
+                    : settings.showreelUrl
+                }
+                poster={settings.showreelPoster || undefined}
+                className="h-full w-full object-cover"
+                muted
+                playsInline
+              />
+            ) : (
+              <div className="grid h-full min-h-40 place-items-center text-sm text-white/35">
+                No banner video
+              </div>
+            )}
+          </div>
+          <div className="p-6 md:col-span-3">
+            <p className="micro text-signal">Homepage</p>
+            <h2 className="font-display mt-2 text-2xl uppercase tracking-tight">
+              Banner video
+            </h2>
+            <p className="mt-2 text-sm text-white/45">
+              Change the full-screen showreel on the homepage — upload MP4 or paste a URL.
+            </p>
+            <p className="micro mt-6 text-white/70">Open settings →</p>
+          </div>
+        </div>
+      </Link>
 
       <div className="mt-12 grid gap-8 lg:grid-cols-5">
         <section className="lg:col-span-3">

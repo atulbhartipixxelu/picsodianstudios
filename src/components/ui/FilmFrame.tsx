@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { PublicWork } from "@/lib/utils";
 import { motion } from "framer-motion";
 
@@ -13,6 +14,8 @@ export function FilmFrame({
   index: number;
   href?: string;
 }) {
+  const router = useRouter();
+
   const inner = (
     <>
       <div className="relative overflow-hidden border border-paper/10 bg-ink-2">
@@ -64,7 +67,15 @@ export function FilmFrame({
       exit={{ opacity: 0, y: 16 }}
       transition={{ duration: 0.55, delay: index * 0.07, ease: [0.22, 1, 0.36, 1] }}
     >
-      <Link href={href} data-cursor="View" className="group block">
+      <Link
+        href={href}
+        data-cursor="View"
+        className="group relative z-10 block"
+        onClick={(e) => {
+          e.preventDefault();
+          router.push(href);
+        }}
+      >
         {inner}
       </Link>
     </motion.div>

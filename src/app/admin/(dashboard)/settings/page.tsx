@@ -10,7 +10,7 @@ export default async function SettingsPage() {
         Settings
       </h1>
       <p className="mt-2 text-sm text-white/45">
-        Showreel, studio copy, and contact email.
+        Showreel, studio copy, and contact email. Homepage banner video lives here.
       </p>
       <SettingsForm
         initial={{

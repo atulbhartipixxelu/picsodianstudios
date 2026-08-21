@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { PublicWork } from "@/lib/utils";
@@ -11,6 +12,7 @@ import { PageReveal } from "@/components/ui/PageReveal";
 const FILTERS = ["All", "2D", "Motion", "Film", "Character", "3D"];
 
 export function WorkIndex({ works }: { works: PublicWork[] }) {
+  const router = useRouter();
   const [filter, setFilter] = useState("All");
   const [mode, setMode] = useState<"grid" | "list">("grid");
   const [preview, setPreview] = useState<PublicWork | null>(null);
@@ -26,7 +28,7 @@ export function WorkIndex({ works }: { works: PublicWork[] }) {
 
   return (
     <PageReveal>
-      <div className="relative min-h-screen overflow-hidden bg-ink text-paper">
+      <div className="relative z-10 min-h-screen bg-ink text-paper">
         <div className="pointer-events-none absolute inset-y-0 left-0 w-5 sprockets md:w-7" />
         <div className="pointer-events-none absolute inset-y-0 right-0 w-5 sprockets md:w-7" />
 
@@ -172,7 +174,11 @@ export function WorkIndex({ works }: { works: PublicWork[] }) {
                     href={`/work/${work.slug}`}
                     data-cursor="Open"
                     onMouseEnter={() => setPreview(work)}
-                    className="group flex items-baseline justify-between gap-4 border-b border-line py-5 md:grid md:grid-cols-12 md:items-center"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      router.push(`/work/${work.slug}`);
+                    }}
+                    className="group relative z-10 flex items-baseline justify-between gap-4 border-b border-line py-5 md:grid md:grid-cols-12 md:items-center"
                   >
                     <span className="micro hidden text-mist md:col-span-1 md:block">
                       {String(i + 1).padStart(2, "0")}

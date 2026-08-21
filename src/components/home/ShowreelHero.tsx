@@ -9,6 +9,20 @@ type Props = {
   tagline: string;
 };
 
+function embedSrc(url: string) {
+  const yt = url.match(
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]+)/,
+  );
+  if (yt?.[1]) {
+    return `https://www.youtube.com/embed/${yt[1]}?autoplay=1&mute=1&loop=1&playlist=${yt[1]}&controls=0&rel=0&playsinline=1`;
+  }
+  const vimeo = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  if (vimeo?.[1]) {
+    return `https://player.vimeo.com/video/${vimeo[1]}?autoplay=1&muted=1&loop=1&background=1`;
+  }
+  return null;
+}
+
 export function ShowreelHero({ videoUrl, poster, tagline }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const wrapRef = useRef<HTMLElement>(null);
@@ -31,23 +45,35 @@ export function ShowreelHero({ videoUrl, poster, tagline }: Props) {
     return () => wrap.removeEventListener("mousemove", onMove);
   }, []);
 
+  const embed = embedSrc(videoUrl);
+
   return (
     <section
       ref={wrapRef}
       className="relative h-[100svh] overflow-hidden bg-ink"
       data-cursor="Scrub"
     >
-      <video
-        ref={videoRef}
-        className="absolute inset-0 h-full w-full scale-110 object-cover opacity-70"
-        style={{ transform: "translate3d(var(--mx, 0), var(--my, 0), 0) scale(1.12)" }}
-        src={videoUrl}
-        poster={poster}
-        autoPlay
-        muted={muted}
-        loop
-        playsInline
-      />
+      {embed ? (
+        <iframe
+          src={embed}
+          title="Picsodian showreel"
+          className="pointer-events-none absolute inset-0 h-full w-full scale-110 border-0"
+          allow="autoplay; fullscreen"
+          allowFullScreen
+        />
+      ) : (
+        <video
+          ref={videoRef}
+          className="absolute inset-0 h-full w-full scale-110 object-cover opacity-70"
+          style={{ transform: "translate3d(var(--mx, 0), var(--my, 0), 0) scale(1.12)" }}
+          src={videoUrl}
+          poster={poster}
+          autoPlay
+          muted={muted}
+          loop
+          playsInline
+        />
+      )}
       <div className="absolute inset-0 bg-gradient-to-b from-ink/40 via-ink/20 to-ink" />
       <div className="pointer-events-none absolute inset-y-0 left-0 w-5 sprockets md:w-7" />
       <div className="pointer-events-none absolute inset-y-0 right-0 w-5 sprockets md:w-7" />
@@ -68,18 +94,22 @@ export function ShowreelHero({ videoUrl, poster, tagline }: Props) {
             Scroll
             <span className="mt-2 block h-10 w-px bg-signal" />
           </p>
-          <button
-            type="button"
-            data-cursor="Audio"
-            onClick={() => {
-              setMuted((m) => !m);
-              if (videoRef.current) videoRef.current.muted = !muted;
-            }}
-            className="flex items-center gap-2 border border-paper/30 px-3 py-2 text-paper"
-          >
-            {muted ? <VolumeX size={14} /> : <Volume2 size={14} />}
-            <span className="micro">{muted ? "Sound off" : "Sound on"}</span>
-          </button>
+          {!embed ? (
+            <button
+              type="button"
+              data-cursor="Audio"
+              onClick={() => {
+                setMuted((m) => !m);
+                if (videoRef.current) videoRef.current.muted = !muted;
+              }}
+              className="flex items-center gap-2 border border-paper/30 px-3 py-2 text-paper"
+            >
+              {muted ? <VolumeX size={14} /> : <Volume2 size={14} />}
+              <span className="micro">{muted ? "Sound off" : "Sound on"}</span>
+            </button>
+          ) : (
+            <span />
+          )}
         </div>
       </div>
     </section>

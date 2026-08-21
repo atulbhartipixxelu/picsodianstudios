@@ -20,7 +20,6 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
     });
 
     (window as Window & { __lenis?: Lenis }).__lenis = lenis;
-
     lenis.on("scroll", ScrollTrigger.update);
 
     const ticker = (time: number) => {
@@ -37,7 +36,6 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
       gsap.ticker.remove(ticker);
       delete (window as Window & { __lenis?: Lenis }).__lenis;
       lenis.destroy();
-      ScrollTrigger.getAll().forEach((t) => t.kill());
     };
   }, []);
 
@@ -45,6 +43,7 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
     const lenis = (window as Window & { __lenis?: Lenis }).__lenis;
     lenis?.scrollTo(0, { immediate: true });
     window.scrollTo(0, 0);
+    requestAnimationFrame(() => ScrollTrigger.refresh());
   }, [pathname]);
 
   return <>{children}</>;
