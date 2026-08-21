@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now())
+}
+
+model Work {
+  id         String   @id @default(cuid())
+  title      String
+  slug       String   @unique
+  category   String
+  year       Int
+  client     String   @default("")
+  director   String   @default("")
+  role       String   @default("")
+  synopsis   String   @default("")
+  overview   String   @default("")
+  crew       String   @default("[]")
+  thumbnail  String
+  heroImage  String   @default("")
+  videoUrl   String   @default("")
+  gallery    String   @default("[]")
+  featured   Boolean  @default(false)
+  published  Boolean  @default(true)
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Enquiry {
+  id          String   @id @default(cuid())
+  name        String
+  email       String
+  company     String   @default("")
+  projectType String   @default("")
+  budget      String   @default("")
+  message     String
+  status      String   @default("new")
+  createdAt   DateTime @default(now())
+}
+
+model Setting {
+  id             String @id @default("studio")
+  showreelUrl    String @default("")
+  showreelPoster String @default("")
+  tagline        String @default("")
+  email          String @default("creatives@picsodianstudios.com")
+  instagram      String @default("")
+  twitter        String @default("")
+  vimeo          String @default("")
+  about          String @default("")
+}
