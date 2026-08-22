@@ -155,7 +155,9 @@ export function StudioGate({ still }: { still?: string }) {
       opacity: 0,
       duration: 0.2,
     });
-    return () => tl.kill();
+    return () => {
+      tl.kill();
+    };
   }, []);
 
   return (
