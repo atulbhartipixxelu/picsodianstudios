@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { ScrollWords } from "@/components/ui/ScrollWords";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -25,23 +26,6 @@ export function HomeClose({ stills = [] }: { stills?: string[] }) {
     if (!el) return;
 
     const ctx = gsap.context(() => {
-      gsap.fromTo(
-        el.querySelectorAll("[data-line]"),
-        { y: "120%", opacity: 0 },
-        {
-          y: "0%",
-          opacity: 1,
-          stagger: 0.08,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: el,
-            start: "top 75%",
-            end: "top 35%",
-            scrub: 0.7,
-          },
-        },
-      );
-
       gsap.fromTo(
         el.querySelectorAll("[data-card]"),
         { y: 80, rotate: 0, opacity: 0 },
@@ -93,10 +77,8 @@ export function HomeClose({ stills = [] }: { stills?: string[] }) {
   return (
     <section
       ref={root}
-      className="relative overflow-hidden bg-ink px-4 py-24 text-paper md:px-7 md:py-32"
+      className="relative flex min-h-[100svh] items-center overflow-hidden bg-ink px-4 py-24 text-paper md:px-7 md:py-32"
     >
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-5 sprockets md:w-7" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-5 sprockets md:w-7" />
       <p className="pointer-events-none absolute top-10 right-8 font-display text-[28vw] leading-none text-signal/10 select-none md:text-[14vw]">
         04
       </p>
@@ -104,22 +86,14 @@ export function HomeClose({ stills = [] }: { stills?: string[] }) {
       <div className="relative grid items-center gap-16 lg:grid-cols-12">
         <div className="lg:col-span-6">
           <p className="micro text-signal">Studio / 04</p>
-          <h2 className="display-huge mt-6 text-[12vw] lg:text-[5.2vw]">
-            {LINES.map((line) => (
-              <span key={line} className="block overflow-hidden pb-1">
-                <span
-                  data-line
-                  className={
-                    line.includes("powerful") || line.includes("stories")
-                      ? "inline-block text-signal"
-                      : "inline-block"
-                  }
-                >
-                  {line}
-                </span>
-              </span>
-            ))}
-          </h2>
+          <ScrollWords
+            lines={LINES}
+            className="display-huge mt-6 text-[12vw] lg:text-[5.2vw]"
+            accent={(word) =>
+              word.toLowerCase().includes("powerful") ||
+              word.toLowerCase().includes("stories")
+            }
+          />
 
           <p className="mt-8 max-w-md text-paper/65">
             A worldwide collective. One intent: show up better than yesterday,

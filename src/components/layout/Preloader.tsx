@@ -76,9 +76,6 @@ export function Preloader({ onComplete }: Props) {
         >
           <LoaderBackdrop count={count} timecode={tc} />
 
-          <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-6 sprockets md:w-8" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-6 sprockets md:w-8" />
-
           <div className="relative z-20 flex flex-col items-center gap-6">
             <p className="micro text-mist">Picsodian / Gate</p>
             <div className="relative">

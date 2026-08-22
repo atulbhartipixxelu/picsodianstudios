@@ -13,7 +13,7 @@ export default async function AdminDashboardLayout({
   if (!session) redirect("/admin/login");
 
   return (
-    <div className="min-h-screen bg-[#070708] text-paper">
+    <div className="min-h-screen bg-ink text-paper">
       <AdminNav name={session.name} />
       <div className="ml-0 md:ml-64">
         <header className="flex items-center justify-between px-6 py-5 md:px-10">
@@ -32,6 +32,7 @@ export default async function AdminDashboardLayout({
         <nav className="flex gap-2 overflow-x-auto px-6 pb-2 md:hidden">
           {[
             ["/admin", "Overview"],
+            ["/admin/banner", "Banner"],
             ["/admin/works", "Works"],
             ["/admin/enquiries", "Enquiries"],
             ["/admin/settings", "Settings"],

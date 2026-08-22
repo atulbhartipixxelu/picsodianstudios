@@ -13,8 +13,8 @@ export function ServicesMarquee() {
   const row = [...ITEMS, ...ITEMS];
 
   return (
-    <section className="overflow-hidden border-y border-line bg-ink-2 py-8">
-      <div className="animate-marquee flex w-max gap-10">
+    <section className="flex min-h-[100svh] items-center overflow-hidden border-y border-line bg-ink-2">
+      <div className="animate-marquee flex w-max gap-10 py-8">
         {row.map((item, i) => (
           <span
             key={item + i}

@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 
 export type ChartSlice = { label: string; value: number };
 
-const COLORS = ["#ff4444", "#ff6a3d", "#efeae2", "#9a958c", "#c45c5c", "#6b6560"];
+const COLORS = ["#ff4444", "#ff6a3d", "#f2f0f0", "#9c9a9a", "#c45c5c", "#6b6560"];
 
 export function DashboardCharts({
   byCategory,

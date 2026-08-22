@@ -5,6 +5,8 @@ import { useEffect, useRef } from "react";
 const HOVER_SEL = "a, button, [data-cursor], [role='button']";
 const TEXT_SEL = "input, textarea, select, [contenteditable='true']";
 const TRAIL = 10;
+/** Skip magnetic pull on huge hit targets (e.g. full-width sections) */
+const MAX_MAGNET_AREA = 72_000;
 
 export function CustomCursor() {
   const root = useRef<HTMLDivElement>(null);
@@ -91,7 +93,12 @@ export function CustomCursor() {
 
       const hover = node?.closest(HOVER_SEL) as HTMLElement | null;
       if (hover) {
-        magnet = hover.getBoundingClientRect();
+        const noMagnet = hover.hasAttribute("data-no-magnet");
+        const rect = hover.getBoundingClientRect();
+        const area = rect.width * rect.height;
+        const tooLarge = area > MAX_MAGNET_AREA;
+
+        magnet = noMagnet || tooLarge ? null : rect;
         labelEl.textContent = hover.getAttribute("data-cursor") || "Open";
         rootEl.dataset.state = "hover";
         return;

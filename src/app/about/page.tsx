@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { PageReveal } from "@/components/ui/PageReveal";
+import { ScrollWords } from "@/components/ui/ScrollWords";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "About" };
@@ -39,14 +40,13 @@ export default async function AboutPage() {
   return (
     <PageReveal>
       <div className="relative bg-ink text-paper">
-        <div className="pointer-events-none absolute inset-y-0 left-0 w-5 sprockets md:w-7" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-5 sprockets md:w-7" />
-
         <section className="px-4 pt-28 pb-16 md:px-7 md:pt-32 md:pb-24">
           <p className="micro text-signal">Studio / About</p>
-          <h1 className="display-huge mt-4 max-w-5xl text-[12vw] md:text-[7vw]">
-            Built around ideas, motion, and people who care.
-          </h1>
+          <ScrollWords
+            as="h1"
+            className="display-huge mt-4 max-w-5xl text-[12vw] md:text-[7vw]"
+            lines={["Built around ideas,", "motion, and people", "who care."]}
+          />
         </section>
 
         <section className="grid gap-12 px-4 pb-24 md:grid-cols-12 md:px-7">
@@ -74,7 +74,10 @@ export default async function AboutPage() {
 
         <section className="border-t border-line px-4 py-20 md:px-7">
           <p className="micro text-signal">Capabilities / 02</p>
-          <h2 className="display-huge mt-3 text-5xl md:text-7xl">What we make</h2>
+          <ScrollWords
+            lines={["What we make"]}
+            className="display-huge mt-3 text-5xl md:text-7xl"
+          />
           <ul className="mt-12 grid gap-px border border-line md:grid-cols-3">
             {CAPABILITIES.map((item, i) => (
               <li
@@ -109,9 +112,10 @@ export default async function AboutPage() {
 
         <section className="px-4 py-24 md:px-7">
           <p className="micro text-signal">Next / 03</p>
-          <h2 className="display-huge mt-4 max-w-4xl text-[10vw] md:text-[6vw]">
-            Let&apos;s make something that stays.
-          </h2>
+          <ScrollWords
+            className="display-huge mt-4 max-w-4xl text-[10vw] md:text-[6vw]"
+            lines={["Let's make something", "that stays."]}
+          />
           <div className="mt-10 flex flex-wrap gap-3">
             <Link
               href="/work"

@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 
 const schema = z.object({
   showreelUrl: z.string().optional(),
   showreelPoster: z.string().optional(),
   tagline: z.string().optional(),
-  email: z.string().email().optional(),
+  email: z.union([z.string().email(), z.literal("")]).optional(),
   instagram: z.string().optional(),
   twitter: z.string().optional(),
   vimeo: z.string().optional(),
@@ -26,6 +27,11 @@ export async function PATCH(req: Request) {
       update: body,
       create: { id: "studio", ...body },
     });
+    revalidatePath("/");
+    revalidatePath("/admin");
+    revalidatePath("/admin/banner");
+    revalidatePath("/admin/settings");
+    revalidatePath("/admin/login");
     return NextResponse.json(settings);
   } catch {
     return NextResponse.json({ error: "Could not save settings." }, { status: 400 });

@@ -10,12 +10,10 @@ export default async function SettingsPage() {
         Settings
       </h1>
       <p className="mt-2 text-sm text-white/45">
-        Showreel, studio copy, and contact email. Homepage banner video lives here.
+        Studio copy and contact email. Banner video is on the Banner page.
       </p>
       <SettingsForm
         initial={{
-          showreelUrl: settings?.showreelUrl ?? "",
-          showreelPoster: settings?.showreelPoster ?? "",
           tagline: settings?.tagline ?? "",
           email: settings?.email ?? "",
           instagram: settings?.instagram ?? "",

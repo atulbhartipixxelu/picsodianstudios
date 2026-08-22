@@ -35,7 +35,7 @@ export function Nav() {
 
   return (
     <header className="pointer-events-auto fixed top-0 right-0 left-0 z-[90]">
-      <div className="flex items-center justify-between gap-4 bg-ink/75 px-4 py-4 backdrop-blur-md md:px-7 md:py-5">
+      <div className="flex items-center justify-between gap-4 px-4 py-3.5 md:px-7 md:py-4">
         <Link
           href="/"
           data-cursor="Home"
@@ -45,7 +45,7 @@ export function Nav() {
           }}
           className="relative z-[91] flex items-center gap-3"
         >
-          <Logo />
+          <Logo variant="header" className="h-16 md:h-20 lg:h-[5.75rem]" />
         </Link>
 
         <nav className="relative z-[91] hidden items-center gap-1 md:flex">
@@ -64,14 +64,16 @@ export function Nav() {
                     go(link.href);
                   }}
                   className={cn(
-                    "px-3 py-2 text-[13px] tracking-[0.18em] uppercase transition-colors",
+                    "px-3 py-2 text-[13px] tracking-[0.18em] uppercase transition-colors drop-shadow-[0_1px_6px_rgba(0,0,0,0.85)]",
                     active ? "text-signal" : "text-paper hover:text-signal",
                   )}
                 >
                   {link.label}
                 </Link>
                 {i < LINKS.length - 1 && (
-                  <span className="pointer-events-none text-mist/50">/</span>
+                  <span className="pointer-events-none text-paper/40 drop-shadow-[0_1px_6px_rgba(0,0,0,0.85)]">
+                    /
+                  </span>
                 )}
               </span>
             );
@@ -79,13 +81,13 @@ export function Nav() {
         </nav>
 
         <div className="flex items-center gap-4">
-          <p className="micro hidden text-paper/80 sm:block">
+          <p className="micro hidden text-paper/90 drop-shadow-[0_1px_6px_rgba(0,0,0,0.85)] sm:block">
             {String(frame).padStart(2, "0")}
             <span className="text-mist">/24 fps</span>
           </p>
           <button
             type="button"
-            className="relative z-[91] micro text-paper md:hidden"
+            className="relative z-[91] micro text-paper drop-shadow-[0_1px_6px_rgba(0,0,0,0.85)] md:hidden"
             onClick={() => setOpen((v) => !v)}
             aria-label="Menu"
           >

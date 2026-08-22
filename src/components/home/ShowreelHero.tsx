@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Volume2, VolumeX } from "lucide-react";
+import Image from "next/image";
+import gsap from "gsap";
+import { PlayPauseControl } from "@/components/ui/PlayPauseControl";
 
 type Props = {
   videoUrl: string;
   poster: string;
-  tagline: string;
 };
 
 function embedSrc(url: string) {
@@ -23,10 +24,89 @@ function embedSrc(url: string) {
   return null;
 }
 
-export function ShowreelHero({ videoUrl, poster, tagline }: Props) {
+export function ShowreelHero({ videoUrl, poster }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const wrapRef = useRef<HTMLElement>(null);
-  const [muted, setMuted] = useState(true);
+  const [playing, setPlaying] = useState(true);
+  const [src, setSrc] = useState(videoUrl);
+  const [cover, setCover] = useState(poster);
+
+  useEffect(() => {
+    setSrc(videoUrl);
+    setCover(poster);
+  }, [videoUrl, poster]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/studio", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled) return;
+        if (data.showreelUrl) setSrc(data.showreelUrl);
+        if (data.showreelPoster) setCover(data.showreelPoster);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.load();
+    video.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
+  }, [src]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const onPlay = () => setPlaying(true);
+    const onPause = () => setPlaying(false);
+    video.addEventListener("play", onPlay);
+    video.addEventListener("pause", onPause);
+    return () => {
+      video.removeEventListener("play", onPlay);
+      video.removeEventListener("pause", onPause);
+    };
+  }, [src]);
+
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+
+    const play = () => {
+      gsap.fromTo(
+        wrap.querySelectorAll("[data-hero]"),
+        { y: "115%" },
+        {
+          y: "0%",
+          stagger: 0.1,
+          duration: 1.05,
+          ease: "power3.out",
+        },
+      );
+    };
+
+    gsap.set(wrap.querySelectorAll("[data-hero]"), { y: "115%" });
+
+    if (!document.documentElement.classList.contains("is-booting")) {
+      play();
+      return;
+    }
+
+    const obs = new MutationObserver(() => {
+      if (!document.documentElement.classList.contains("is-booting")) {
+        play();
+        obs.disconnect();
+      }
+    });
+    obs.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => obs.disconnect();
+  }, []);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -45,16 +125,23 @@ export function ShowreelHero({ videoUrl, poster, tagline }: Props) {
     return () => wrap.removeEventListener("mousemove", onMove);
   }, []);
 
-  const embed = embedSrc(videoUrl);
+  const togglePlayback = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.paused) {
+      video.play().catch(() => {});
+    } else {
+      video.pause();
+    }
+  };
+
+  const embed = embedSrc(src);
 
   return (
-    <section
-      ref={wrapRef}
-      className="relative h-[100svh] overflow-hidden bg-ink"
-      data-cursor="Scrub"
-    >
+    <section ref={wrapRef} className="relative h-full overflow-hidden bg-ink">
       {embed ? (
         <iframe
+          key={src}
           src={embed}
           title="Picsodian showreel"
           className="pointer-events-none absolute inset-0 h-full w-full scale-110 border-0"
@@ -63,52 +150,38 @@ export function ShowreelHero({ videoUrl, poster, tagline }: Props) {
         />
       ) : (
         <video
+          key={src}
           ref={videoRef}
           className="absolute inset-0 h-full w-full scale-110 object-cover opacity-70"
           style={{ transform: "translate3d(var(--mx, 0), var(--my, 0), 0) scale(1.12)" }}
-          src={videoUrl}
-          poster={poster}
+          src={src}
+          poster={cover}
           autoPlay
-          muted={muted}
+          muted
           loop
           playsInline
         />
       )}
-      <div className="absolute inset-0 bg-gradient-to-b from-ink/40 via-ink/20 to-ink" />
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-5 sprockets md:w-7" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-5 sprockets md:w-7" />
 
-      <div className="relative z-10 flex h-full flex-col justify-between px-4 pt-24 pb-8 md:px-7 md:pt-28">
-        <p className="micro max-w-sm text-paper/70">{tagline}</p>
+      <div className="absolute inset-0 bg-gradient-to-b from-ink/40 via-ink/15 to-ink/90" />
 
-        <div>
-          <p className="micro mb-4 text-signal">Showreel / 2026</p>
-          <h1 className="display-huge text-[16vw] md:text-[11vw]">
-            Picsodian
-            <span className="block text-signal">Studios</span>
-          </h1>
-        </div>
+      <div className="relative z-10 flex h-full flex-col justify-end px-4 pb-10 pt-24 md:px-7 md:pb-12 md:pt-28">
+        <div className="flex w-full items-end justify-between gap-4">
+          <div className="w-1/2 shrink-0 overflow-hidden">
+            <div data-hero className="overflow-hidden">
+              <Image
+                src="/logo-white.png"
+                alt="Picsodian Studios"
+                width={1200}
+                height={280}
+                priority
+                className="h-auto w-full object-contain object-left mix-blend-screen"
+              />
+            </div>
+          </div>
 
-        <div className="flex items-end justify-between gap-4">
-          <p className="micro text-paper/70">
-            Scroll
-            <span className="mt-2 block h-10 w-px bg-signal" />
-          </p>
-          {!embed ? (
-            <button
-              type="button"
-              data-cursor="Audio"
-              onClick={() => {
-                setMuted((m) => !m);
-                if (videoRef.current) videoRef.current.muted = !muted;
-              }}
-              className="flex items-center gap-2 border border-paper/30 px-3 py-2 text-paper"
-            >
-              {muted ? <VolumeX size={14} /> : <Volume2 size={14} />}
-              <span className="micro">{muted ? "Sound off" : "Sound on"}</span>
-            </button>
-          ) : (
-            <span />
+          {!embed && (
+            <PlayPauseControl playing={playing} onToggle={togglePlayback} />
           )}
         </div>
       </div>

@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { cubicBezier, motion, useScroll, useTransform } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
+
+const ease = cubicBezier(0, 0, 0, 0);
 
 const LINES = [
   "We are a passion-driven",
@@ -15,12 +18,67 @@ const LINES = [
 
 const CHIPS = ["2D", "Motion", "Film", "Character", "24 fps"];
 
-type Props = {
-  still?: string;
-};
+/** TheStudio — slides up after project stack (outside gap container) */
+export function Manifesto() {
+  const ref = useRef<HTMLDivElement>(null);
+  const heading = useRef<HTMLHeadingElement>(null);
 
-export function Manifesto({ still }: Props) {
-  const ref = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["50vh end", "100vh end"],
+  });
+
+  const y = useTransform(scrollYProgress, [0, 1], ["50vh", "0vh"], { ease });
+  const rotate = useTransform(scrollYProgress, [0, 0.3], ["7deg", "0deg"], { ease });
+  const x = useTransform(scrollYProgress, [0, 0.3], ["-10%", "0%"], { ease });
+
+  useEffect(() => {
+    const title = heading.current;
+    if (!title) return;
+    const lines = title.querySelectorAll<HTMLElement>(".heading-line");
+    const ctx = gsap.context(() => {
+      gsap.set(lines, { opacity: 0.16, color: "#9c9a9a" });
+      gsap.to(lines, {
+        opacity: 1,
+        color: "#f2f0f0",
+        stagger: 0.18,
+        ease: "none",
+        scrollTrigger: {
+          trigger: title,
+          start: "top 78%",
+          end: "top 30%",
+          scrub: 0.55,
+          invalidateOnRefresh: true,
+        },
+      });
+    }, title);
+    return () => ctx.revert();
+  }, []);
+
+  return (
+    <div ref={ref} className="relative z-40 max-h-[50vh]">
+      <motion.div
+        style={{ x, y, rotate }}
+        className="flex min-h-screen origin-[0%_0%] flex-col justify-center overflow-hidden bg-[#333333f2] px-4 py-28 text-paper lg:origin-[0%_50%] md:px-7"
+      >
+        <p className="micro mb-8 text-signal">Who we are / 01</p>
+        <h2
+          ref={heading}
+          className="display-huge max-w-[16ch] text-[11.5vw] md:text-[7vw] lg:text-[6.2vw]"
+        >
+          {LINES.map((line) => (
+            <span key={line} className="heading-line">
+              {line}
+            </span>
+          ))}
+        </h2>
+      </motion.div>
+    </div>
+  );
+}
+
+export function StudioGate({ still }: { still?: string }) {
+  const gate = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const img = useRef<HTMLImageElement>(null);
   const scan = useRef<HTMLDivElement>(null);
@@ -39,30 +97,11 @@ export function Manifesto({ still }: Props) {
   }, []);
 
   useEffect(() => {
-    const root = ref.current;
+    const root = gate.current;
     if (!root) return;
-
     const ctx = gsap.context(() => {
       gsap.fromTo(
-        root.querySelectorAll("[data-word]"),
-        { x: -40, opacity: 0, filter: "blur(8px)" },
-        {
-          x: 0,
-          opacity: 1,
-          filter: "blur(0px)",
-          stagger: 0.05,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: root,
-            start: "top 75%",
-            end: "center center",
-            scrub: 0.7,
-          },
-        },
-      );
-
-      gsap.fromTo(
-        "[data-iris]",
+        root.querySelector("[data-iris]"),
         { clipPath: "circle(0% at 50% 50%)" },
         {
           clipPath: "circle(75% at 50% 50%)",
@@ -70,60 +109,29 @@ export function Manifesto({ still }: Props) {
           scrollTrigger: {
             trigger: root,
             start: "top 80%",
-            end: "top 30%",
+            end: "top 35%",
             scrub: 0.9,
-          },
-        },
-      );
-
-      gsap.fromTo(
-        "[data-chip]",
-        { x: -16, opacity: 0 },
-        {
-          x: 0,
-          opacity: 1,
-          stagger: 0.12,
-          scrollTrigger: {
-            trigger: root,
-            start: "top 60%",
-            end: "top 30%",
-            scrub: true,
-          },
-        },
-      );
-
-      gsap.fromTo(
-        "[data-stat] span",
-        { y: 20, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          stagger: 0.08,
-          scrollTrigger: {
-            trigger: root,
-            start: "top 45%",
-            toggleActions: "play none none reverse",
+            invalidateOnRefresh: true,
           },
         },
       );
     }, root);
-
     return () => ctx.revert();
   }, []);
 
   useEffect(() => {
-    const root = ref.current;
+    const root = gate.current;
     const card = stage.current;
     const photo = img.current;
     if (!root || !card) return;
 
     const onMove = (e: MouseEvent) => {
       const r = root.getBoundingClientRect();
-      const x = (e.clientX - r.left) / r.width - 0.5;
-      const y = (e.clientY - r.top) / r.height - 0.5;
-      card.style.transform = `perspective(1000px) rotateY(${x * 12}deg) rotateX(${-y * 8}deg)`;
+      const mx = (e.clientX - r.left) / r.width - 0.5;
+      const my = (e.clientY - r.top) / r.height - 0.5;
+      card.style.transform = `perspective(1000px) rotateY(${mx * 12}deg) rotateX(${-my * 8}deg)`;
       if (photo) {
-        photo.style.transform = `scale(1.12) translate(${x * -18}px, ${y * -12}px)`;
+        photo.style.transform = `scale(1.12) translate(${mx * -18}px, ${my * -12}px)`;
       }
     };
     const onLeave = () => {
@@ -147,46 +155,34 @@ export function Manifesto({ still }: Props) {
       opacity: 0,
       duration: 0.2,
     });
-    return () => {
-      tl.kill();
-    };
+    return () => tl.kill();
   }, []);
 
   return (
-    <section
-      ref={ref}
-      className="relative overflow-hidden bg-ink px-4 py-24 text-paper md:px-7 md:py-32"
-    >
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-5 sprockets md:w-7" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-5 sprockets md:w-7" />
-
-      <div className="relative grid items-center gap-16 lg:grid-cols-12">
-        <div className="lg:col-span-7">
-          <p className="micro mb-8 text-signal">Who we are / 01</p>
-          <h2 className="display-huge text-[11vw] lg:text-[5.4vw]">
-            {LINES.map((line) => (
-              <span key={line} className="block overflow-hidden pb-2">
-                {line.split(" ").map((word) => (
-                  <span
-                    key={word + line}
-                    className="inline-block overflow-hidden pr-[0.28em]"
-                  >
-                    <span data-word className="inline-block">
-                      {word}
-                    </span>
-                  </span>
-                ))}
-              </span>
-            ))}
-          </h2>
-          <p className="mt-10 max-w-xl text-lg leading-relaxed text-paper/70">
+    <section ref={gate} className="relative bg-ink px-4 py-20 text-paper md:px-7 md:py-28">
+      <div className="relative grid w-full items-center gap-16 lg:grid-cols-12">
+        <div className="lg:col-span-6">
+          <p className="micro mb-6 text-signal">The lowdown</p>
+          <p className="max-w-xl text-lg leading-relaxed text-paper/70">
             Storytelling is more than frames and effects. We blast the screen with
             energy, emotion, and imagination — work that doesn&apos;t just look good,
             it stays with you.
           </p>
+          <div className="mt-10 grid max-w-md grid-cols-3 gap-3 text-center">
+            {[
+              ["24", "fps"],
+              ["∞", "frames"],
+              ["01", "vision"],
+            ].map(([n, l]) => (
+              <div key={l} className="border border-line px-2 py-4">
+                <span className="font-display block text-3xl text-signal">{n}</span>
+                <span className="micro mt-1 block text-mist">{l}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="relative lg:col-span-5">
+        <div className="relative lg:col-span-6">
           <div className="relative mx-auto aspect-square max-w-[460px]" data-iris>
             <div className="manifesto-ring absolute inset-0" />
 
@@ -234,7 +230,6 @@ export function Manifesto({ still }: Props) {
             {CHIPS.map((chip, i) => (
               <span
                 key={chip}
-                data-chip
                 className="absolute border border-signal/40 bg-ink/85 px-3 py-1 micro text-signal backdrop-blur-sm"
                 style={{
                   top: `${14 + i * 15}%`,
@@ -243,19 +238,6 @@ export function Manifesto({ still }: Props) {
               >
                 {chip}
               </span>
-            ))}
-          </div>
-
-          <div className="mt-8 grid grid-cols-3 gap-3 text-center">
-            {[
-              ["24", "fps"],
-              ["∞", "frames"],
-              ["01", "vision"],
-            ].map(([n, l]) => (
-              <div key={l} data-stat className="border border-line px-2 py-4">
-                <span className="font-display block text-3xl text-signal">{n}</span>
-                <span className="micro mt-1 block text-mist">{l}</span>
-              </div>
             ))}
           </div>
         </div>

@@ -2,49 +2,78 @@
 
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
-import Lenis from "lenis";
+import { ReactLenis, useLenis } from "lenis/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
-export function SmoothScroll({ children }: { children: React.ReactNode }) {
+function LenisScrollBridge() {
   const pathname = usePathname();
+  const lenis = useLenis();
 
   useEffect(() => {
-    const lenis = new Lenis({
-      duration: 1.15,
-      smoothWheel: true,
-      anchors: false,
-      stopInertiaOnNavigate: true,
+    if (!lenis) return;
+
+    ScrollTrigger.scrollerProxy(document.documentElement, {
+      scrollTop(value) {
+        if (arguments.length && value !== undefined) {
+          lenis.scrollTo(value, { immediate: true });
+        }
+        return lenis.scroll;
+      },
+      getBoundingClientRect() {
+        return {
+          top: 0,
+          left: 0,
+          width: window.innerWidth,
+          height: window.innerHeight,
+        };
+      },
     });
 
-    (window as Window & { __lenis?: Lenis }).__lenis = lenis;
-    lenis.on("scroll", ScrollTrigger.update);
-
-    const ticker = (time: number) => {
-      lenis.raf(time * 1000);
-    };
-    gsap.ticker.add(ticker);
-    gsap.ticker.lagSmoothing(0);
-
-    const onResize = () => ScrollTrigger.refresh();
-    window.addEventListener("resize", onResize);
+    const onScroll = () => ScrollTrigger.update();
+    lenis.on("scroll", onScroll);
+    ScrollTrigger.refresh();
 
     return () => {
-      window.removeEventListener("resize", onResize);
-      gsap.ticker.remove(ticker);
-      delete (window as Window & { __lenis?: Lenis }).__lenis;
-      lenis.destroy();
+      lenis.off("scroll", onScroll);
+      ScrollTrigger.scrollerProxy(document.documentElement, {});
+    };
+  }, [lenis]);
+
+  useEffect(() => {
+    if (!lenis) return;
+    lenis.scrollTo(0, { immediate: true });
+    requestAnimationFrame(() => ScrollTrigger.refresh());
+  }, [pathname, lenis]);
+
+  useEffect(() => {
+    const refresh = () => ScrollTrigger.refresh();
+    window.addEventListener("ps:ready", refresh);
+    window.addEventListener("resize", refresh);
+    return () => {
+      window.removeEventListener("ps:ready", refresh);
+      window.removeEventListener("resize", refresh);
     };
   }, []);
 
-  useEffect(() => {
-    const lenis = (window as Window & { __lenis?: Lenis }).__lenis;
-    lenis?.scrollTo(0, { immediate: true });
-    window.scrollTo(0, 0);
-    requestAnimationFrame(() => ScrollTrigger.refresh());
-  }, [pathname]);
+  return null;
+}
 
-  return <>{children}</>;
+export function SmoothScroll({ children }: { children: React.ReactNode }) {
+  return (
+    <ReactLenis
+      root
+      options={{
+        duration: 1.05,
+        smoothWheel: true,
+        anchors: false,
+        syncTouch: true,
+      }}
+    >
+      <LenisScrollBridge />
+      {children}
+    </ReactLenis>
+  );
 }

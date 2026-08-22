@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { serializeWork } from "@/lib/utils";
 import { PageReveal } from "@/components/ui/PageReveal";
+import { ScrollWords } from "@/components/ui/ScrollWords";
 
 export const dynamic = "force-dynamic";
 
@@ -48,15 +49,15 @@ export default async function WorkDetailPage({
             className="absolute inset-0 h-full w-full object-cover opacity-45"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/50 to-ink/25" />
-          <div className="pointer-events-none absolute inset-y-0 left-0 w-5 sprockets md:w-7" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-5 sprockets md:w-7" />
           <div className="relative z-10 flex min-h-[80svh] flex-col justify-end px-4 pb-14 pt-32 md:px-7">
             <p className="micro text-signal">
               {parsed.category} / {parsed.year}
             </p>
-            <h1 className="display-huge mt-3 text-[14vw] md:text-[8vw]">
-              {parsed.title}
-            </h1>
+            <ScrollWords
+              as="h1"
+              className="display-huge mt-3 text-[14vw] md:text-[8vw]"
+              lines={[parsed.title]}
+            />
           </div>
         </header>
 
@@ -116,7 +117,10 @@ export default async function WorkDetailPage({
         {parsed.crew.length > 0 && (
           <section className="border-t border-line px-4 py-16 md:px-7 md:py-24">
             <p className="micro text-signal">/ Behind the curtain</p>
-            <h2 className="display-huge mt-3 text-5xl md:text-7xl">The Crew</h2>
+            <ScrollWords
+              lines={["The Crew"]}
+              className="display-huge mt-3 text-5xl md:text-7xl"
+            />
             <ul className="mt-12 grid gap-0 md:grid-cols-2">
               {parsed.crew.map((credit) => (
                 <li

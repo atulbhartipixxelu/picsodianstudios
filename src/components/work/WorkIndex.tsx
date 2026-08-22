@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import type { PublicWork } from "@/lib/utils";
 import { FilmFrame } from "@/components/ui/FilmFrame";
 import { PageReveal } from "@/components/ui/PageReveal";
+import { ScrollWords } from "@/components/ui/ScrollWords";
 
 const FILTERS = ["All", "2D", "Motion", "Film", "Character", "3D"];
 
@@ -29,9 +30,6 @@ export function WorkIndex({ works }: { works: PublicWork[] }) {
   return (
     <PageReveal>
       <div className="relative z-10 min-h-screen bg-ink text-paper">
-        <div className="pointer-events-none absolute inset-y-0 left-0 w-5 sprockets md:w-7" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-5 sprockets md:w-7" />
-
         <section className="px-4 pt-28 pb-6 md:px-7 md:pt-32">
           <div className="flex flex-wrap items-end justify-between gap-6">
             <div>
@@ -42,25 +40,12 @@ export function WorkIndex({ works }: { works: PublicWork[] }) {
               >
                 Index / Work
               </motion.p>
-              <h1 className="display-huge mt-3 overflow-hidden text-[16vw] leading-[0.85] md:text-[8vw]">
-                <motion.span
-                  className="block"
-                  initial={{ y: "110%" }}
-                  animate={{ y: 0 }}
-                  transition={{ duration: 0.85, ease: [0.76, 0, 0.24, 1] }}
-                >
-                  The work
-                  <motion.span
-                    key={visible.length}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-signal"
-                  >
-                    {" "}
-                    [{String(visible.length).padStart(2, "0")}]
-                  </motion.span>
-                </motion.span>
-              </h1>
+              <ScrollWords
+                as="h1"
+                className="display-huge mt-3 text-[16vw] md:text-[8vw]"
+                lines={[`The work [${String(visible.length).padStart(2, "0")}]`]}
+                accent={(word) => word.startsWith("[")}
+              />
             </div>
             <motion.div
               initial={{ opacity: 0 }}

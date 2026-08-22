@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Clapperboard, Inbox, Plus, Sparkles } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { DashboardCharts } from "@/components/admin/DashboardCharts";
+import { BannerVideoManager } from "@/components/admin/BannerVideoManager";
 
 export default async function AdminHomePage() {
   const [works, enquiries, unread, recentWorks, allWorks, settings] = await Promise.all([
@@ -94,51 +95,28 @@ export default async function AdminHomePage() {
 
       <DashboardCharts byCategory={byCategory} byYear={byYear} />
 
-      <Link
-        href="/admin/settings"
-        className="dash-card mt-10 block overflow-hidden p-0"
-      >
-        <div className="grid md:grid-cols-5">
-          <div className="relative aspect-video bg-black md:col-span-2 md:aspect-auto">
-            {settings?.showreelUrl ? (
-              <video
-                src={
-                  settings.showreelUrl.includes("youtube") ||
-                  settings.showreelUrl.includes("vimeo") ||
-                  settings.showreelUrl.includes("youtu.be")
-                    ? undefined
-                    : settings.showreelUrl
-                }
-                poster={settings.showreelPoster || undefined}
-                className="h-full w-full object-cover"
-                muted
-                playsInline
-              />
-            ) : (
-              <div className="grid h-full min-h-40 place-items-center text-sm text-white/35">
-                No banner video
-              </div>
-            )}
-          </div>
-          <div className="p-6 md:col-span-3">
-            <p className="micro text-signal">Homepage</p>
-            <h2 className="font-display mt-2 text-2xl uppercase tracking-tight">
-              Banner video
-            </h2>
-            <p className="mt-2 text-sm text-white/45">
-              Change the full-screen showreel on the homepage — upload MP4 or paste a URL.
-            </p>
-            <p className="micro mt-6 text-white/70">Open settings →</p>
-          </div>
+      <div className="mt-10">
+        <BannerVideoManager
+          variant="compact"
+          initial={{
+            showreelUrl: settings?.showreelUrl ?? "",
+            showreelPoster: settings?.showreelPoster ?? "",
+          }}
+        />
+
+        <div className="mt-4 text-right">
+          <Link href="/admin/banner" className="micro text-white/45 hover:text-signal">
+            Full banner settings →
+          </Link>
         </div>
-      </Link>
+      </div>
 
       <div className="mt-12 grid gap-8 lg:grid-cols-5">
         <section className="lg:col-span-3">
           <h2 className="font-display text-2xl uppercase tracking-tight">
             Latest enquiries
           </h2>
-          <div className="mt-4 overflow-hidden border border-white/10 bg-[#101014]">
+          <div className="mt-4 overflow-hidden border border-white/10 bg-ink-2">
             {recent.length === 0 ? (
               <div className="px-6 py-16 text-center">
                 <p className="text-white/40">No enquiries yet.</p>
@@ -185,7 +163,7 @@ export default async function AdminHomePage() {
               <Link
                 key={work.id}
                 href={`/admin/works/${work.id}`}
-                className="group overflow-hidden border border-white/10 bg-[#101014]"
+                className="group overflow-hidden border border-white/10 bg-ink-2"
               >
                 <img
                   src={work.thumbnail}

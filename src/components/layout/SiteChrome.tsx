@@ -2,11 +2,15 @@
 
 import { useState } from "react";
 import { usePathname } from "next/navigation";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { CustomCursor } from "./CustomCursor";
 import { Footer } from "./Footer";
 import { Nav } from "./Nav";
 import { Preloader } from "./Preloader";
 import { SmoothScroll } from "./SmoothScroll";
+
+gsap.registerPlugin(ScrollTrigger);
 
 export function SiteChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -17,14 +21,22 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
     return <div className="admin-shell min-h-screen bg-ink">{children}</div>;
   }
 
+  function markReady() {
+    setReady(true);
+    requestAnimationFrame(() => {
+      window.dispatchEvent(new Event("ps:ready"));
+      ScrollTrigger.refresh();
+    });
+  }
+
   return (
     <>
-      <Preloader onComplete={() => setReady(true)} />
+      <Preloader onComplete={markReady} />
       <div
         className={
           ready
             ? "opacity-100 transition-opacity duration-700"
-            : "pointer-events-none h-screen overflow-hidden opacity-0"
+            : "pointer-events-none opacity-0"
         }
       >
         <div className="grain" aria-hidden />

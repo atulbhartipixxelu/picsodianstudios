@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { PublicWork } from "@/lib/utils";
+import { LineMask } from "@/components/ui/LineMask";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -49,7 +50,10 @@ export function FilmStrip({ works }: { works: PublicWork[] }) {
         <div className="flex items-end justify-between px-4 pt-10 pb-6 md:px-7">
           <div>
             <p className="micro text-signal">Latest works / 02</p>
-            <h2 className="display-huge mt-2 text-5xl md:text-7xl">On the strip</h2>
+            <LineMask
+              lines={["On the strip"]}
+              className="display-huge mt-2 text-5xl md:text-7xl"
+            />
           </div>
           <Link href="/work" className="micro text-paper" data-cursor="Index">
             All work →

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Clapperboard,
+  Film,
   Inbox,
   LayoutDashboard,
   LogOut,
@@ -14,6 +15,7 @@ import { Logo } from "@/components/layout/Logo";
 
 const LINKS = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
+  { href: "/admin/banner", label: "Banner", icon: Film },
   { href: "/admin/works", label: "Works", icon: Clapperboard },
   { href: "/admin/enquiries", label: "Enquiries", icon: Inbox },
   { href: "/admin/settings", label: "Settings", icon: Settings },
@@ -30,7 +32,7 @@ export function AdminNav({ name }: { name: string }) {
   }
 
   return (
-    <aside className="fixed top-0 left-0 z-20 hidden h-screen w-64 flex-col border-r border-white/8 bg-[#0c0c0f] md:flex">
+    <aside className="fixed top-0 left-0 z-20 hidden h-screen w-64 flex-col border-r border-white/8 bg-ink-2 md:flex">
       <div className="px-6 py-6">
         <Logo className="h-12" />
         <p className="micro mt-4 text-signal">Studio admin</p>

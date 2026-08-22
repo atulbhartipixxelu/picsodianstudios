@@ -55,8 +55,6 @@ export function Footer() {
 
   return (
     <footer ref={root} className="relative z-50 overflow-x-clip overflow-y-visible bg-[#f44] text-ink">
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-6 sprockets opacity-40 md:w-8" />
-
       <div className="px-4 pt-16 pb-6 md:px-7 md:pt-24">
         <div className="mb-8 flex items-center justify-between gap-4">
           <p className="micro">Next / Make something that stays</p>
@@ -117,7 +115,7 @@ export function Footer() {
                   d="M 160,160 m -132,0 a 132,132 0 1,1 264,0 a 132,132 0 1,1 -264,0"
                 />
               </defs>
-              <text fill="#070708" fontSize="12" letterSpacing="6">
+              <text fill="#333333" fontSize="12" letterSpacing="6">
                 <textPath href="#footer-orbit">
                   START A PROJECT — ENQUIRE NOW — PICSODIAN STUDIOS —
                 </textPath>

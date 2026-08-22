@@ -34,7 +34,7 @@ export function EnquiryList({ items }: { items: Enquiry[] }) {
 
   if (!items.length) {
     return (
-      <div className="mt-8 border border-white/10 bg-[#101014] px-6 py-20 text-center">
+      <div className="mt-8 border border-white/10 bg-ink-2 px-6 py-20 text-center">
         <p className="text-white/50">No enquiries yet.</p>
         <p className="micro mt-2 text-white/30">
           New contact form messages will show up here.
