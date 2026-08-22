@@ -11,14 +11,28 @@ type Props = {
   lines: string[];
   className?: string;
   as?: "h1" | "h2" | "h3";
+  /** Client-only matcher. Server pages should use `accentWords`. */
   accent?: (word: string) => boolean;
+  /** Serializable highlight match — safe to pass from Server Components. */
+  accentWords?: string[];
 };
+
+function isAccent(
+  text: string,
+  accent?: (word: string) => boolean,
+  accentWords?: string[],
+) {
+  if (accent?.(text)) return true;
+  const lower = text.toLowerCase();
+  return Boolean(accentWords?.some((word) => lower.includes(word.toLowerCase())));
+}
 
 export function ScrollWords({
   lines,
   className,
   as: Tag = "h2",
   accent,
+  accentWords,
 }: Props) {
   const ref = useRef<HTMLHeadingElement>(null);
 
@@ -30,10 +44,14 @@ export function ScrollWords({
       gsap.set(row, { opacity: 0.16, color: "#9c9a9a" });
       gsap.to(row, {
         opacity: 1,
-        color: (i) =>
-          accent?.(lines[i] ?? "") || accent?.(lines[i]?.split(" ")[0] ?? "")
+        color: (i) => {
+          const line = lines[i] ?? "";
+          const first = line.split(" ")[0] ?? "";
+          return isAccent(line, accent, accentWords) ||
+            isAccent(first, accent, accentWords)
             ? "#ff4444"
-            : "#f2f0f0",
+            : "#f2f0f0";
+        },
         stagger: 0.14,
         ease: "none",
         scrollTrigger: {
@@ -54,7 +72,8 @@ export function ScrollWords({
         <span
           key={line}
           className={
-            accent?.(line) || line.split(" ").some((w) => accent?.(w))
+            isAccent(line, accent, accentWords) ||
+            line.split(" ").some((word) => isAccent(word, accent, accentWords))
               ? "heading-line text-signal"
               : "heading-line"
           }

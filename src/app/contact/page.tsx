@@ -15,7 +15,7 @@ export default function ContactPage() {
               as="h1"
               className="display-huge mt-4 text-[14vw] md:text-[6.2vw]"
               lines={["Get in", "touch."]}
-              accent={(word) => word.toLowerCase().includes("touch")}
+              accentWords={["touch"]}
             />
             <p className="mt-6 max-w-md text-lg leading-relaxed text-paper/70">
               For business inquiries and press. Tell us what you want to make —
