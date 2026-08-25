@@ -2,11 +2,15 @@
 
 import { useState } from "react";
 
-const TYPES = ["Film", "Music video", "Commercial", "Game cinematic", "Original", "Other"];
+const TYPES = [
+  "Film",
+  "Music video",
+  "Commercial",
+  "Game cinematic",
+  "Original",
+  "Other",
+];
 const BUDGETS = ["Let's talk", "Under $10k", "$10k–$40k", "$40k–$100k", "$100k+"];
-
-const fieldClass =
-  "border-b border-line bg-transparent py-3 text-paper outline-none transition-colors focus:border-signal";
 
 export function EnquiryForm() {
   const [status, setStatus] = useState<"idle" | "sending" | "ok" | "err">("idle");
@@ -36,11 +40,11 @@ export function EnquiryForm() {
 
   if (status === "ok") {
     return (
-      <div className="border border-signal/40 bg-ink-2 px-6 py-12">
-        <p className="micro text-signal">Received / 24 fps</p>
-        <h2 className="display-huge mt-3 text-5xl">We&apos;ll be in touch.</h2>
-        <p className="mt-4 max-w-md text-paper/70">
-          Your enquiry is with the studio. If it&apos;s urgent, write us at
+      <div className="contact-ok">
+        <p className="micro text-paper/55">Received / 24 fps</p>
+        <p className="contact-ok-title">We&apos;ll be in touch.</p>
+        <p>
+          Your enquiry is with the studio. If it&apos;s urgent, write
           creatives@picsodianstudios.com.
         </p>
       </div>
@@ -48,58 +52,57 @@ export function EnquiryForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-6">
-      <label className="grid gap-2">
-        <span className="micro text-mist">Name *</span>
-        <input required name="name" className={fieldClass} />
-      </label>
-      <label className="grid gap-2">
-        <span className="micro text-mist">Email *</span>
-        <input required type="email" name="email" className={fieldClass} />
-      </label>
-      <label className="grid gap-2">
-        <span className="micro text-mist">Company</span>
-        <input name="company" className={fieldClass} />
-      </label>
-      <div className="grid gap-6 md:grid-cols-2">
-        <label className="grid gap-2">
-          <span className="micro text-mist">Project type</span>
-          <select name="projectType" className={fieldClass} defaultValue="">
-            <option value="">Select</option>
-            {TYPES.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
+    <form onSubmit={onSubmit} className="contact-form">
+      <div className="contact-form-pair">
+        <label className="contact-field">
+          <span>01 / Name *</span>
+          <input required name="name" autoComplete="name" />
         </label>
-        <label className="grid gap-2">
-          <span className="micro text-mist">Budget</span>
-          <select name="budget" className={fieldClass} defaultValue="">
-            <option value="">Select</option>
-            {BUDGETS.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
+        <label className="contact-field">
+          <span>02 / Email *</span>
+          <input required type="email" name="email" autoComplete="email" />
         </label>
       </div>
-      <label className="grid gap-2">
-        <span className="micro text-mist">Message *</span>
-        <textarea
-          required
-          name="message"
-          rows={5}
-          minLength={10}
-          className={fieldClass}
-        />
+      <label className="contact-field">
+        <span>03 / Company</span>
+        <input name="company" autoComplete="organization" />
       </label>
-      {error && <p className="micro text-heat">{error}</p>}
+
+      <fieldset className="contact-field">
+        <span>04 / Project type</span>
+        <div className="contact-picks">
+          {TYPES.map((type) => (
+            <label key={type}>
+              <input type="radio" name="projectType" value={type} />
+              <em>{type}</em>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      <fieldset className="contact-field">
+        <span>05 / Budget</span>
+        <div className="contact-picks">
+          {BUDGETS.map((budget) => (
+            <label key={budget}>
+              <input type="radio" name="budget" value={budget} />
+              <em>{budget}</em>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      <label className="contact-field">
+        <span>06 / Message *</span>
+        <textarea required name="message" rows={5} minLength={10} />
+      </label>
+
+      {error ? <p className="contact-error">{error}</p> : null}
+
       <button
         disabled={status === "sending"}
         data-cursor="Send"
-        className="mt-2 border border-signal bg-signal px-6 py-4 text-ink micro disabled:opacity-60"
+        className="contact-send"
       >
         {status === "sending" ? "Sending…" : "Send enquiry"}
       </button>
