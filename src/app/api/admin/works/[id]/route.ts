@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
+import { revalidateSite } from "@/lib/revalidateSite";
 
 const workSchema = z.object({
   title: z.string().min(2).optional(),
@@ -47,6 +48,7 @@ export async function PATCH(
         : {}),
     };
     const work = await prisma.work.update({ where: { id }, data });
+    revalidateSite();
     return NextResponse.json(work);
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -62,5 +64,6 @@ export async function DELETE(
 ) {
   const { id } = await ctx.params;
   await prisma.work.delete({ where: { id } });
+  revalidateSite();
   return NextResponse.json({ ok: true });
 }

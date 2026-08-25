@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
+import { revalidateSite } from "@/lib/revalidateSite";
 
 const workSchema = z.object({
   title: z.string().min(2),
@@ -39,6 +40,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Slug already exists." }, { status: 409 });
     }
     const work = await prisma.work.create({ data: { ...body, slug } });
+    revalidateSite();
     return NextResponse.json(work);
   } catch (error) {
     if (error instanceof z.ZodError) {

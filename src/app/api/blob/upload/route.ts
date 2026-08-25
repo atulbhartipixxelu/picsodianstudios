@@ -32,6 +32,7 @@ export async function POST(req: Request) {
         return {
           allowedContentTypes: ALLOWED,
           addRandomSuffix: true,
+          allowOverwrite: true,
           maximumSizeInBytes: 100 * 1024 * 1024,
         };
       },

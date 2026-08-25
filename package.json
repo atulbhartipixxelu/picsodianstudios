@@ -10,6 +10,7 @@
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
+    "blob:amg": "tsx scripts/upload-amg-blob.ts",
     "postinstall": "prisma generate"
   },
   "prisma": {

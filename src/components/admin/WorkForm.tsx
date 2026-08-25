@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { uploadWithProgress } from "@/lib/uploadClient";
 
 export type WorkFormValues = {
   title: string;
@@ -54,6 +55,9 @@ export function WorkForm({
   const [values, setValues] = useState<WorkFormValues>({ ...EMPTY, ...initial });
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState<"thumbnail" | "heroImage" | null>(
+    null,
+  );
 
   function set<K extends keyof WorkFormValues>(key: K, value: WorkFormValues[K]) {
     setValues((v) => ({ ...v, [key]: value }));
@@ -62,15 +66,24 @@ export function WorkForm({
   async function upload(field: "thumbnail" | "heroImage") {
     const input = document.createElement("input");
     input.type = "file";
-    input.accept = "image/*,video/mp4";
+    input.accept = "image/jpeg,image/png,image/webp,image/gif";
     input.onchange = async () => {
       const file = input.files?.[0];
       if (!file) return;
-      const body = new FormData();
-      body.append("file", file);
-      const res = await fetch("/api/admin/upload", { method: "POST", body });
-      const data = await res.json();
-      if (data.url) set(field, data.url);
+      setError("");
+      setUploading(field);
+      try {
+        const url = await uploadWithProgress(file, () => {});
+        set(field, url);
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Upload failed. Connect Vercel Blob to this project.",
+        );
+      } finally {
+        setUploading(null);
+      }
     };
     input.click();
   }
@@ -184,10 +197,22 @@ export function WorkForm({
               required
               className="field"
             />
-            <button type="button" onClick={() => upload("thumbnail")} className="micro border border-line px-3">
-              Upload
+            <button
+              type="button"
+              onClick={() => upload("thumbnail")}
+              disabled={uploading !== null}
+              className="micro border border-line px-3"
+            >
+              {uploading === "thumbnail" ? "Uploading…" : "Upload"}
             </button>
           </div>
+          {values.thumbnail.startsWith("http") ? (
+            <img
+              src={values.thumbnail}
+              alt=""
+              className="mt-2 h-20 w-32 object-cover border border-line"
+            />
+          ) : null}
         </Field>
         <Field label="Hero image URL">
           <div className="flex gap-2">
@@ -196,8 +221,13 @@ export function WorkForm({
               onChange={(e) => set("heroImage", e.target.value)}
               className="field"
             />
-            <button type="button" onClick={() => upload("heroImage")} className="micro border border-line px-3">
-              Upload
+            <button
+              type="button"
+              onClick={() => upload("heroImage")}
+              disabled={uploading !== null}
+              className="micro border border-line px-3"
+            >
+              {uploading === "heroImage" ? "Uploading…" : "Upload"}
             </button>
           </div>
         </Field>

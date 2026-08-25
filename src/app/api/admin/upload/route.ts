@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { put } from "@vercel/blob";
+import { requireAdmin } from "@/lib/auth";
 
 export const maxDuration = 60;
 export const runtime = "nodejs";
@@ -35,6 +36,12 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  try {
+    await requireAdmin();
+  } catch {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const form = await req.formData();
   const file = form.get("file");
 
@@ -56,11 +63,36 @@ export async function POST(req: Request) {
   );
 
   if (blobEnabled()) {
-    const blob = await put(`uploads/${safe}`, file, {
-      access: "public",
-      addRandomSuffix: false,
-    });
-    return NextResponse.json({ url: blob.url });
+    try {
+      const blob = await put(`uploads/${safe}`, file, {
+        access: "public",
+        addRandomSuffix: false,
+        allowOverwrite: true,
+        contentType: file.type || undefined,
+        multipart: file.size > 4 * 1024 * 1024,
+      });
+      return NextResponse.json({ url: blob.url });
+    } catch (error) {
+      return NextResponse.json(
+        {
+          error:
+            error instanceof Error
+              ? error.message
+              : "Cloud upload failed. Check the Blob store is connected to this project.",
+        },
+        { status: 500 },
+      );
+    }
+  }
+
+  if (process.env.VERCEL) {
+    return NextResponse.json(
+      {
+        error:
+          "Vercel Blob is not connected. Open Vercel → Storage → connect picsodianstudios-blob to this project, then redeploy.",
+      },
+      { status: 503 },
+    );
   }
 
   const dir = path.join(process.cwd(), "public", "uploads");
