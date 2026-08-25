@@ -6,10 +6,7 @@ export const FALLBACK_STILL = "/cartoon-backdrop.png";
 
 export function stillSrc(url?: string | null) {
   const value = url?.trim();
-  if (!value) return FALLBACK_STILL;
-  // Vercel disk is ephemeral — these 404 on production after upload.
-  if (value.startsWith("/uploads/")) return FALLBACK_STILL;
-  return value;
+  return value ? value : FALLBACK_STILL;
 }
 
 export function slugify(value: string) {
