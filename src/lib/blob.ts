@@ -9,11 +9,11 @@ export function blobConfigured() {
 }
 
 export async function putPublicFile(pathname: string, file: File) {
-  return put(pathname, file, {
+  const bytes = Buffer.from(await file.arrayBuffer());
+  return put(pathname, bytes, {
     access: "public",
     addRandomSuffix: true,
     allowOverwrite: true,
-    contentType: file.type || undefined,
-    multipart: file.size > 4 * 1024 * 1024,
+    contentType: file.type || "application/octet-stream",
   });
 }

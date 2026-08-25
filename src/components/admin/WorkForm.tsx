@@ -72,6 +72,11 @@ export function WorkForm({
   }
 
   async function persistField(field: MediaField, url: string) {
+    if (url.startsWith("/uploads/") && /\.vercel\.app$/i.test(window.location.hostname)) {
+      throw new Error(
+        "Vercel cannot keep laptop /uploads/ files. Connect Blob storage, redeploy, then upload again. The URL must start with https://",
+      );
+    }
     set(field, url);
     if (!id) return;
     const res = await fetch(`/api/admin/works/${id}`, {
@@ -115,6 +120,17 @@ export function WorkForm({
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (
+      /\.vercel\.app$/i.test(window.location.hostname) &&
+      [values.thumbnail, values.heroImage, values.videoUrl].some((url) =>
+        url.startsWith("/uploads/"),
+      )
+    ) {
+      setError(
+        "These /uploads/ paths only work on your laptop. Upload the images again on this Vercel admin so they get an https:// blob URL.",
+      );
+      return;
+    }
     setSaving(true);
     setError("");
     const res = await fetch(id ? `/api/admin/works/${id}` : "/api/admin/works", {

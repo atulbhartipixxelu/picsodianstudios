@@ -7,7 +7,7 @@ export function cn(...classes: Array<string | false | null | undefined>) {
 export const FALLBACK_STILL = "/cartoon-backdrop.png";
 
 export function stillSrc(url?: string | null) {
-  const value = url?.trim();
+  const value = mediaUrl(url);
   return value ? value : FALLBACK_STILL;
 }
 
@@ -81,11 +81,13 @@ export function serializeWork(work: {
 }) {
   return {
     ...work,
-    thumbnail: mediaUrl(work.thumbnail),
-    heroImage: mediaUrl(work.heroImage),
-    videoUrl: mediaUrl(work.videoUrl),
+    thumbnail: mediaUrl(work.thumbnail, { slug: work.slug, kind: "thumbnail" }),
+    heroImage: mediaUrl(work.heroImage, { slug: work.slug, kind: "heroImage" }),
+    videoUrl: mediaUrl(work.videoUrl, { slug: work.slug, kind: "video" }),
     crew: parseCrew(work.crew),
-    gallery: parseJsonArray(work.gallery).map(mediaUrl),
+    gallery: parseJsonArray(work.gallery).map((item) =>
+      mediaUrl(item, { slug: work.slug, kind: "gallery" }),
+    ),
   };
 }
 
