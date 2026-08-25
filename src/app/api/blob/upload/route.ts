@@ -3,15 +3,18 @@ import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { requireAdmin } from "@/lib/auth";
 
 export const maxDuration = 60;
+export const runtime = "nodejs";
 
 const ALLOWED = [
   "image/jpeg",
+  "image/jpg",
   "image/png",
   "image/webp",
   "image/gif",
   "video/mp4",
   "video/webm",
   "video/quicktime",
+  "application/octet-stream",
 ];
 
 export async function POST(req: Request) {

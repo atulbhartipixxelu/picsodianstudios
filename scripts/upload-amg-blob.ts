@@ -1,5 +1,6 @@
 import { createReadStream, existsSync, readFileSync } from "node:fs";
 import { put } from "@vercel/blob";
+import { PrismaClient } from "@prisma/client";
 
 function loadEnv() {
   for (const file of [".env.local", ".env"]) {
@@ -31,7 +32,7 @@ async function main() {
   }
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
     throw new Error(
-      "BLOB_READ_WRITE_TOKEN missing. In Vercel: Storage → picsodianstudios-blob → .env.local pull, or copy the token into .env.local",
+      "BLOB_READ_WRITE_TOKEN missing. In Vercel: Storage → picsodianstudios-blob → connect to this project, then `vercel env pull`.",
     );
   }
 
@@ -45,8 +46,19 @@ async function main() {
     contentType: "video/mp4",
   });
 
+  const prisma = new PrismaClient();
+  try {
+    await prisma.work.updateMany({
+      where: { slug: "advance-motion-graphics" },
+      data: { videoUrl: blob.url },
+    });
+  } finally {
+    await prisma.$disconnect();
+  }
+
   console.log("\nPublic URL:\n", blob.url);
-  console.log("\nAdmin → Works → Advance Motion Graphics → paste this into Video URL.");
+  console.log("\nSaved on the Advance Motion Graphics work.");
+  console.log("Also set NEXT_PUBLIC_AMG_VIDEO_URL to this URL on Vercel, then redeploy.");
 }
 
 main().catch((error) => {

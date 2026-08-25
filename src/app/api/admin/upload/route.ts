@@ -9,6 +9,7 @@ export const runtime = "nodejs";
 
 const ALLOWED = [
   "image/jpeg",
+  "image/jpg",
   "image/png",
   "image/webp",
   "image/gif",

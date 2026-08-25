@@ -11,7 +11,13 @@ const nextConfig: NextConfig = {
     ],
   },
   async rewrites() {
-    return [{ source: "/logo.png", destination: "/logo-white.png" }];
+    const amg = process.env.NEXT_PUBLIC_AMG_VIDEO_URL?.trim();
+    return [
+      { source: "/logo.png", destination: "/logo-white.png" },
+      ...(amg
+        ? [{ source: "/works/advance-motion-graphics.mp4", destination: amg }]
+        : []),
+    ];
   },
 };
 

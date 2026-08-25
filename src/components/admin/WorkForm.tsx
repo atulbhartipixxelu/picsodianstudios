@@ -1,8 +1,12 @@
 "use client";
 
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { uploadWithProgress } from "@/lib/uploadClient";
+import {
+  formatBytes,
+  uploadWithProgress,
+  type UploadProgress,
+} from "@/lib/uploadClient";
 
 export type WorkFormValues = {
   title: string;
@@ -44,6 +48,8 @@ const EMPTY: WorkFormValues = {
   sortOrder: 0,
 };
 
+type MediaField = "thumbnail" | "heroImage" | "videoUrl";
+
 export function WorkForm({
   id,
   initial,
@@ -55,37 +61,42 @@ export function WorkForm({
   const [values, setValues] = useState<WorkFormValues>({ ...EMPTY, ...initial });
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState<"thumbnail" | "heroImage" | null>(
-    null,
-  );
+  const [uploading, setUploading] = useState<MediaField | null>(null);
+  const [progress, setProgress] = useState<UploadProgress | null>(null);
+  const thumbInput = useRef<HTMLInputElement>(null);
+  const heroInput = useRef<HTMLInputElement>(null);
+  const videoInput = useRef<HTMLInputElement>(null);
 
   function set<K extends keyof WorkFormValues>(key: K, value: WorkFormValues[K]) {
     setValues((v) => ({ ...v, [key]: value }));
   }
 
-  async function upload(field: "thumbnail" | "heroImage") {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/jpeg,image/png,image/webp,image/gif";
-    input.onchange = async () => {
-      const file = input.files?.[0];
-      if (!file) return;
-      setError("");
-      setUploading(field);
-      try {
-        const url = await uploadWithProgress(file, () => {});
-        set(field, url);
-      } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Upload failed. Connect Vercel Blob to this project.",
-        );
-      } finally {
-        setUploading(null);
-      }
-    };
-    input.click();
+  async function upload(field: MediaField, file: File) {
+    setError("");
+    setUploading(field);
+    setProgress({ percent: 0, loaded: 0, total: file.size });
+    try {
+      const url = await uploadWithProgress(file, setProgress);
+      set(field, url);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Upload failed. Connect Vercel Blob to this project, then redeploy.",
+      );
+    } finally {
+      setUploading(null);
+      setProgress(null);
+    }
+  }
+
+  function onPick(
+    field: MediaField,
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (file) void upload(field, file);
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -116,6 +127,28 @@ export function WorkForm({
 
   return (
     <form onSubmit={onSubmit} className="dash-panel grid gap-5 p-6 md:p-8">
+      <input
+        ref={thumbInput}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        className="hidden"
+        onChange={(e) => onPick("thumbnail", e)}
+      />
+      <input
+        ref={heroInput}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        className="hidden"
+        onChange={(e) => onPick("heroImage", e)}
+      />
+      <input
+        ref={videoInput}
+        type="file"
+        accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov"
+        className="hidden"
+        onChange={(e) => onPick("videoUrl", e)}
+      />
+
       <Field label="Title">
         <input
           value={values.title}
@@ -189,56 +222,35 @@ export function WorkForm({
         />
       </Field>
       <div className="grid gap-5 md:grid-cols-2">
-        <Field label="Thumbnail URL">
-          <div className="flex gap-2">
-            <input
-              value={values.thumbnail}
-              onChange={(e) => set("thumbnail", e.target.value)}
-              required
-              className="field"
-            />
-            <button
-              type="button"
-              onClick={() => upload("thumbnail")}
-              disabled={uploading !== null}
-              className="micro border border-line px-3"
-            >
-              {uploading === "thumbnail" ? "Uploading…" : "Upload"}
-            </button>
-          </div>
-          {values.thumbnail.startsWith("http") ? (
-            <img
-              src={values.thumbnail}
-              alt=""
-              className="mt-2 h-20 w-32 object-cover border border-line"
-            />
-          ) : null}
-        </Field>
-        <Field label="Hero image URL">
-          <div className="flex gap-2">
-            <input
-              value={values.heroImage}
-              onChange={(e) => set("heroImage", e.target.value)}
-              className="field"
-            />
-            <button
-              type="button"
-              onClick={() => upload("heroImage")}
-              disabled={uploading !== null}
-              className="micro border border-line px-3"
-            >
-              {uploading === "heroImage" ? "Uploading…" : "Upload"}
-            </button>
-          </div>
-        </Field>
-      </div>
-      <Field label="Video URL (mp4 or YouTube/Vimeo embed)">
-        <input
-          value={values.videoUrl}
-          onChange={(e) => set("videoUrl", e.target.value)}
-          className="field"
+        <MediaUrlField
+          label="Thumbnail URL"
+          value={values.thumbnail}
+          required
+          uploading={uploading === "thumbnail"}
+          progress={uploading === "thumbnail" ? progress : null}
+          onChange={(v) => set("thumbnail", v)}
+          onUpload={() => thumbInput.current?.click()}
+          preview
         />
-      </Field>
+        <MediaUrlField
+          label="Hero image URL"
+          value={values.heroImage}
+          uploading={uploading === "heroImage"}
+          progress={uploading === "heroImage" ? progress : null}
+          onChange={(v) => set("heroImage", v)}
+          onUpload={() => heroInput.current?.click()}
+          preview
+        />
+      </div>
+      <MediaUrlField
+        label="Video URL (mp4 or YouTube/Vimeo embed)"
+        value={values.videoUrl}
+        uploading={uploading === "videoUrl"}
+        progress={uploading === "videoUrl" ? progress : null}
+        onChange={(v) => set("videoUrl", v)}
+        onUpload={() => videoInput.current?.click()}
+        uploadLabel="Upload video"
+      />
       <Field label="Gallery JSON — array of image URLs">
         <textarea
           rows={3}
@@ -275,7 +287,7 @@ export function WorkForm({
       </div>
       {error && <p className="micro text-heat">{error}</p>}
       <div className="flex gap-3">
-        <button disabled={saving} className="bg-signal px-5 py-3 text-ink micro">
+        <button disabled={saving || uploading !== null} className="bg-signal px-5 py-3 text-ink micro">
           {saving ? "Saving…" : "Save work"}
         </button>
         {id && (
@@ -285,6 +297,62 @@ export function WorkForm({
         )}
       </div>
     </form>
+  );
+}
+
+function MediaUrlField({
+  label,
+  value,
+  required,
+  uploading,
+  progress,
+  onChange,
+  onUpload,
+  preview,
+  uploadLabel = "Upload",
+}: {
+  label: string;
+  value: string;
+  required?: boolean;
+  uploading: boolean;
+  progress: UploadProgress | null;
+  onChange: (value: string) => void;
+  onUpload: () => void;
+  preview?: boolean;
+  uploadLabel?: string;
+}) {
+  return (
+    <div className="grid gap-2">
+      <span className="micro text-mist">{label}</span>
+      <div className="flex gap-2">
+        <input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          required={required}
+          className="field"
+        />
+        <button
+          type="button"
+          onClick={onUpload}
+          disabled={uploading}
+          className="micro shrink-0 border border-line px-3"
+        >
+          {uploading
+            ? progress
+              ? `${progress.percent}%`
+              : "Uploading…"
+            : uploadLabel}
+        </button>
+      </div>
+      {uploading && progress ? (
+        <p className="micro text-mist">
+          {formatBytes(progress.loaded)} / {formatBytes(progress.total)}
+        </p>
+      ) : null}
+      {preview && value ? (
+        <img src={value} alt="" className="mt-1 h-20 w-32 object-cover border border-line" />
+      ) : null}
+    </div>
   );
 }
 

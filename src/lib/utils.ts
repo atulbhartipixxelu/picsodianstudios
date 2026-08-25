@@ -1,3 +1,5 @@
+import { mediaUrl } from "@/lib/media";
+
 export function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
@@ -79,8 +81,11 @@ export function serializeWork(work: {
 }) {
   return {
     ...work,
+    thumbnail: mediaUrl(work.thumbnail),
+    heroImage: mediaUrl(work.heroImage),
+    videoUrl: mediaUrl(work.videoUrl),
     crew: parseCrew(work.crew),
-    gallery: parseJsonArray(work.gallery),
+    gallery: parseJsonArray(work.gallery).map(mediaUrl),
   };
 }
 

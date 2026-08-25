@@ -42,8 +42,7 @@ yarn-error.log*
 /public/uploads/*
 !/public/uploads/.gitkeep
 
-# GitHub blocks files over 100MB — keep this clip locally, host it remotely for production
-/public/works/advance-motion-graphics.mp4
+# Keep oversized clips out of git (GitHub blocks 100MB+). The current AMG file is under that limit.
 
 # vercel
 .vercel
