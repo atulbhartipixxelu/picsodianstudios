@@ -8,6 +8,7 @@ export type UploadProgress = {
 
 /** Vercel serverless request body limit — larger files must go client → Blob. */
 const SERVER_BODY_LIMIT = 3.5 * 1024 * 1024;
+const IMAGE_TARGET_BYTES = 280 * 1024;
 const UPLOAD_TIMEOUT_MS = 180_000;
 
 export function formatBytes(bytes: number) {
@@ -40,9 +41,19 @@ function isStillImage(file: File) {
   );
 }
 
-async function compressImage(file: File): Promise<File> {
-  if (!isStillImage(file)) return file;
+function isPortableUrl(url: string) {
+  return (
+    /^https?:\/\//i.test(url) ||
+    url.startsWith("data:image/") ||
+    url.startsWith("blob:")
+  );
+}
 
+async function compressOnce(
+  file: File,
+  maxEdge: number,
+  quality: number,
+): Promise<File> {
   const url = URL.createObjectURL(file);
   try {
     const img = await new Promise<HTMLImageElement>((resolve, reject) => {
@@ -52,8 +63,7 @@ async function compressImage(file: File): Promise<File> {
       el.src = url;
     });
 
-    const max = 1920;
-    const scale = Math.min(1, max / Math.max(img.width, img.height));
+    const scale = Math.min(1, maxEdge / Math.max(img.width, img.height));
     const width = Math.max(1, Math.round(img.width * scale));
     const height = Math.max(1, Math.round(img.height * scale));
     const canvas = document.createElement("canvas");
@@ -64,19 +74,48 @@ async function compressImage(file: File): Promise<File> {
     ctx.drawImage(img, 0, 0, width, height);
 
     const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob(resolve, "image/jpeg", 0.84),
+      canvas.toBlob(resolve, "image/jpeg", quality),
     );
     if (!blob) return file;
-    if (blob.size >= file.size && file.size <= SERVER_BODY_LIMIT) return file;
-
     return new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), {
       type: "image/jpeg",
     });
-  } catch {
-    return file;
   } finally {
     URL.revokeObjectURL(url);
   }
+}
+
+async function compressImage(file: File): Promise<File> {
+  if (!isStillImage(file)) return file;
+
+  let quality = 0.82;
+  let maxEdge = 1400;
+  let out = file;
+
+  try {
+    for (let i = 0; i < 6; i++) {
+      out = await compressOnce(file, maxEdge, quality);
+      if (out.size <= IMAGE_TARGET_BYTES) return out;
+      quality = Math.max(0.55, quality - 0.08);
+      maxEdge = Math.max(720, Math.round(maxEdge * 0.85));
+    }
+  } catch {
+    return file;
+  }
+
+  return out;
+}
+
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") resolve(reader.result);
+      else reject(new Error("Could not encode image."));
+    };
+    reader.onerror = () => reject(new Error("Could not encode image."));
+    reader.readAsDataURL(file);
+  });
 }
 
 function xhrUpload(
@@ -121,7 +160,7 @@ function xhrUpload(
     xhr.onerror = () => reject(new Error("Network error while uploading."));
     xhr.onabort = () => reject(new Error("Upload cancelled."));
     xhr.ontimeout = () =>
-      reject(new Error("Upload timed out. Try a smaller file, or connect Vercel Blob."));
+      reject(new Error("Upload timed out. Try a smaller file."));
 
     const body = new FormData();
     body.append("file", file);
@@ -160,10 +199,7 @@ async function blobDirectUpload(
     };
 
     if (!tokenRes.ok || !data.clientToken) {
-      throw new Error(
-        data.error ||
-          "Could not start cloud upload. Connect Vercel Blob to this project and redeploy.",
-      );
+      throw new Error(data.error || "Could not start cloud upload.");
     }
 
     const blob = await put(pathname, file, {
@@ -199,7 +235,24 @@ export async function uploadWithProgress(
   onProgress({ percent: 0, loaded: 0, total: file.size });
 
   const prepared = await compressImage(file);
-  onProgress({ percent: 1, loaded: 0, total: prepared.size });
+  onProgress({ percent: 8, loaded: 0, total: prepared.size });
+
+  if (isStillImage(file) || prepared.type.startsWith("image/")) {
+    try {
+      const url = await xhrUpload(prepared, onProgress);
+      if (isPortableUrl(url)) return url;
+    } catch {
+      // Blob / disk may fail on Vercel — keep the image in the database instead.
+    }
+    onProgress({
+      percent: 92,
+      loaded: prepared.size,
+      total: prepared.size,
+    });
+    const dataUrl = await fileToDataUrl(prepared);
+    onProgress({ percent: 100, loaded: prepared.size, total: prepared.size });
+    return dataUrl;
+  }
 
   const mode = await fetch("/api/admin/upload", {
     cache: "no-store",
@@ -210,14 +263,11 @@ export async function uploadWithProgress(
 
   if (prepared.size > SERVER_BODY_LIMIT) {
     if (!mode.blob) {
-      throw new Error(
-        "This file is larger than 4MB. Connect the Blob store to this Vercel project, then redeploy.",
-      );
+      throw new Error("This video is too large to store without Vercel Blob.");
     }
     try {
       return await blobDirectUpload(prepared, onProgress);
     } catch {
-      // Token signing can require BLOB_READ_WRITE_TOKEN — try the server path anyway.
       return xhrUpload(prepared, onProgress);
     }
   }

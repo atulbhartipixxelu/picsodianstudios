@@ -72,9 +72,9 @@ export function WorkForm({
   }
 
   async function persistField(field: MediaField, url: string) {
-    if (url.startsWith("/uploads/") && /\.vercel\.app$/i.test(window.location.hostname)) {
+    if (url.startsWith("/uploads/")) {
       throw new Error(
-        "Vercel cannot keep laptop /uploads/ files. Connect Blob storage, redeploy, then upload again. The URL must start with https://",
+        "This path only works on the laptop. Upload the image again — it should save and then appear on the homepage.",
       );
     }
     set(field, url);
@@ -121,13 +121,10 @@ export function WorkForm({
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (
-      /\.vercel\.app$/i.test(window.location.hostname) &&
-      [values.thumbnail, values.heroImage, values.videoUrl].some((url) =>
-        url.startsWith("/uploads/"),
-      )
+      [values.thumbnail, values.heroImage].some((url) => url.startsWith("/uploads/"))
     ) {
       setError(
-        "These /uploads/ paths only work on your laptop. Upload the images again on this Vercel admin so they get an https:// blob URL.",
+        "Upload the thumbnail and hero image with the Upload button so they appear on the live site.",
       );
       return;
     }
@@ -352,17 +349,22 @@ function MediaUrlField({
   preview?: boolean;
   uploadLabel?: string;
 }) {
-  const isRemote = /^https?:\/\//i.test(value);
+  const canPreview =
+    /^https?:\/\//i.test(value) || value.startsWith("data:image/");
   const isLocalDisk = /^\/uploads\//i.test(value);
+  const displayValue = value.startsWith("data:image/")
+    ? "Saved image (will show on the site)"
+    : value;
 
   return (
     <div className="grid gap-2">
       <span className="micro text-mist">{label}</span>
       <div className="flex gap-2">
         <input
-          value={value}
+          value={displayValue}
           onChange={(e) => onChange(e.target.value)}
           required={required}
+          readOnly={value.startsWith("data:image/")}
           className="field"
         />
         <button
@@ -383,7 +385,7 @@ function MediaUrlField({
           {formatBytes(progress.loaded)} / {formatBytes(progress.total)}
         </p>
       ) : null}
-      {preview && isRemote ? (
+      {preview && canPreview ? (
         <img src={value} alt="" className="mt-1 h-20 w-32 object-cover border border-line" />
       ) : null}
       {preview && isLocalDisk ? (

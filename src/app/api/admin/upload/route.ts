@@ -61,18 +61,39 @@ export async function POST(req: Request) {
     try {
       const blob = await putPublicFile(`uploads/${safe}`, file);
       return NextResponse.json({ url: blob.url });
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Cloud upload failed.";
+    } catch {
+      // Fall through — images can still be stored as a data URL in the database.
+    }
+  }
+
+  const isImage =
+    file.type.startsWith("image/") ||
+    [".jpg", ".jpeg", ".png", ".webp", ".gif"].some((item) =>
+      file.name.toLowerCase().endsWith(item),
+    );
+
+  if (isImage) {
+    const buffer = Buffer.from(await file.arrayBuffer());
+    if (buffer.length > 900 * 1024) {
       return NextResponse.json(
-        {
-          error: process.env.VERCEL
-            ? `${message} Connect the Blob store to this Vercel project (Storage → picsodianstudios-blob), set the store to Public, then redeploy.`
-            : message,
-        },
-        { status: 500 },
+        { error: "Image is still too large. Try a smaller JPG or PNG." },
+        { status: 400 },
       );
     }
+    const mime = file.type.startsWith("image/") ? file.type : "image/jpeg";
+    return NextResponse.json({
+      url: `data:${mime};base64,${buffer.toString("base64")}`,
+    });
+  }
+
+  if (process.env.VERCEL) {
+    return NextResponse.json(
+      {
+        error:
+          "Video needs Vercel Blob. Connect Storage → picsodianstudios-blob to this project, then redeploy.",
+      },
+      { status: 503 },
+    );
   }
 
   const dir = path.join(process.cwd(), "public", "uploads");

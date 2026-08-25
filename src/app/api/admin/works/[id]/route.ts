@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
@@ -49,6 +50,7 @@ export async function PATCH(
     };
     const work = await prisma.work.update({ where: { id }, data });
     revalidateSite();
+    revalidatePath(`/work/${work.slug}`);
     return NextResponse.json(work);
   } catch (error) {
     if (error instanceof z.ZodError) {
