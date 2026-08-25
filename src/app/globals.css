@@ -148,6 +148,35 @@ h4,
   margin-top: -0.06em;
 }
 
+.highlights-title {
+  font-family: "BrunsonRough", sans-serif !important;
+  font-size: clamp(2.6rem, 7.2vw, 6.4rem);
+  line-height: 0.95 !important;
+  letter-spacing: 1.5px !important;
+  text-transform: uppercase;
+  color: #f2f0f0;
+}
+
+.highlights-title span {
+  display: block;
+  white-space: nowrap;
+}
+
+.highlights-title span + span {
+  margin-top: 0.1em;
+  color: #f2f0f0;
+  opacity: 0.72;
+}
+
+.case-title {
+  font-family: "BrunsonRough", sans-serif !important;
+  font-size: clamp(1.7rem, 4.6vw, 4rem);
+  line-height: 0.95 !important;
+  letter-spacing: 1.5px !important;
+  text-transform: uppercase;
+  color: #f2f0f0;
+}
+
 .manifesto-sprockets {
   pointer-events: none;
   position: absolute;

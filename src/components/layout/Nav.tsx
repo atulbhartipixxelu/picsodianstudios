@@ -34,7 +34,7 @@ export function Nav() {
   }
 
   return (
-    <header className="pointer-events-auto fixed top-0 right-0 left-0 z-[90]">
+    <header className="pointer-events-auto absolute top-0 right-0 left-0 z-[90]">
       <div className="flex items-center justify-between gap-4 px-4 py-3.5 md:px-7 md:py-4">
         <Link
           href="/"

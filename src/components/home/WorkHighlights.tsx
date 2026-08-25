@@ -4,56 +4,65 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { cubicBezier, motion, useScroll, useTransform } from "framer-motion";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { PublicWork } from "@/lib/utils";
+import { stillSrc } from "@/lib/utils";
 import { embedVideoSrc, isDirectVideo } from "@/lib/video";
 import { CardFrame } from "@/components/ui/CardFrame";
+import { SafeImage } from "@/components/ui/SafeImage";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const ease = cubicBezier(0, 0, 0, 0);
 const FALLBACK_VIDEO =
   "https://videos.pexels.com/video-files/5752729/5752729-uhd_2560_1440_30fps.mp4";
 
 /**
- * HighlightCard — ref on max-h-[25vh] wrapper (exact recreation pattern).
- * Full h-screen panel animates inside compressed scroll trigger.
+ * Highlights intro — first slides flush to the top, then the work cards move.
  */
-export function WorkHighlights({ works }: { works: PublicWork[] }) {
+export function WorkHighlights({
+  works,
+  still,
+}: {
+  works: PublicWork[];
+  still?: string;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const count = String(works.length).padStart(2, "0");
+  const backdrop = stillSrc(still || works[0]?.heroImage || works[0]?.thumbnail);
 
   const { scrollYProgress } = useScroll({
     target: ref,
-    offset: ["start end", "end start"],
+    offset: ["start end", "start start"],
   });
 
-  const rotate = useTransform(
-    scrollYProgress,
-    [0, 0.3, 0.55, 1],
-    ["7deg", "0deg", "0deg", "-3deg"],
-    { ease },
-  );
-  const x = useTransform(
-    scrollYProgress,
-    [0, 0.3, 0.55, 1],
-    ["-10%", "0%", "0%", "-8%"],
-    { ease },
-  );
-  const y = useTransform(scrollYProgress, [0.55, 1], ["0%", "3%"], { ease });
+  const y = useTransform(scrollYProgress, [0, 1], ["72vh", "0vh"], { ease });
 
   return (
-    <div ref={ref} className="relative z-20 max-h-[25vh]">
+    <div ref={ref} className="relative z-20 h-[100svh]">
       <motion.div
-        style={{ x, y, rotate }}
-        className="flex h-screen origin-[0%_0%] flex-col bg-black px-2 pt-2 text-paper lg:origin-[0%_50%] lg:px-[0.46296vw] lg:pt-[0.46296vw]"
+        style={{ y }}
+        className="relative flex h-screen flex-col overflow-hidden bg-ink text-paper"
       >
-        <div className="relative z-10 flex h-full flex-col px-2 pt-24 pb-10 md:px-5">
+        <div className="absolute inset-0">
+          <SafeImage
+            src={backdrop}
+            alt=""
+            className="h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/70 to-ink/30" />
+        </div>
+
+        <div className="relative z-10 flex h-full flex-col px-4 pt-24 pb-10 md:px-8 lg:px-10">
           <div className="flex items-center gap-3">
             <span className="crosshair" aria-hidden />
             <p className="micro text-signal">Highlights</p>
           </div>
 
-          <h2 className="display-huge mt-auto text-[16.5vw] md:text-[10vw] lg:text-[9vw]">
-            <span className="heading-line">The work [{count}]</span>
-            <span className="heading-line text-signal">The studio</span>
+          <h2 className="highlights-title mt-auto">
+            <span>The work [{count}]</span>
+            <span>The studio</span>
           </h2>
         </div>
       </motion.div>
@@ -99,79 +108,83 @@ function CaseMedia({ work }: { work: PublicWork }) {
 }
 
 /**
- * ProjectCard — ref on max-h-[50vh] wrapper (exact recreation pattern).
- * Panel enters bottom-right, exits top-left over sticky bg.
+ * Project card — rotates in to a full-screen hold, then the next section takes over.
  */
 export function HighlightCase({
   work,
   index,
-  isLast = false,
 }: {
   work: PublicWork;
   index: number;
-  total: number;
+  total?: number;
   isLast?: boolean;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
+  const root = useRef<HTMLElement>(null);
+  const face = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["50vh end", "50vh start"],
-  });
+  useEffect(() => {
+    const el = root.current;
+    const panel = face.current;
+    if (!el || !panel) return;
 
-  const y = useTransform(
-    scrollYProgress,
-    [0, 0.5, 0.6, 1],
-    ["55vh", "0vh", "10vh", isLast ? "-110vh" : "-30vh"],
-    { ease },
-  );
-  const x = useTransform(
-    scrollYProgress,
-    [0, 0.5, 0.6, 1],
-    ["15vw", "0vw", "0vw", isLast ? "-8vw" : "-15vw"],
-    { ease },
-  );
-  const rotate = useTransform(
-    scrollYProgress,
-    [0, 0.5, 0.6, 1],
-    ["15deg", "0deg", "0deg", isLast ? "-2deg" : "-7deg"],
-    { ease },
-  );
-  const opacity = useTransform(
-    scrollYProgress,
-    [0, 0.55, 0.82, 1],
-    [1, 1, isLast ? 0.35 : 1, isLast ? 0 : 1],
-  );
-  const rotateChild = useTransform(
-    scrollYProgress,
-    [0, 0.5, 0.6, 1],
-    ["15deg", "2deg", "0deg", "4deg"],
-    { ease },
-  );
-  const xChild = useTransform(
-    scrollYProgress,
-    [0, 0.5, 0.6, 1],
-    ["5vw", "2vw", "0vw", "4vw"],
-    { ease },
-  );
-  const yChild = useTransform(
-    scrollYProgress,
-    [0, 0.5, 0.6, 1],
-    ["25vh", "16vh", "0vh", "35vh"],
-    { ease },
-  );
+    const ctx = gsap.context(() => {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        gsap.set(panel, { clearProps: "all" });
+        return;
+      }
+
+      gsap.set(panel, { transformOrigin: "100% 100%" });
+      gsap.fromTo(
+        panel,
+        { xPercent: 22, yPercent: 28, rotate: 11 },
+        {
+          xPercent: 0,
+          yPercent: 0,
+          rotate: 0,
+          ease: "none",
+          scrollTrigger: {
+            trigger: el,
+            start: "top 92%",
+            end: "top top",
+            scrub: 0.55,
+            invalidateOnRefresh: true,
+          },
+        },
+      );
+
+      ScrollTrigger.create({
+        trigger: el,
+        start: "top top",
+        end: "+=120%",
+        pin: true,
+        anticipatePin: 1,
+        invalidateOnRefresh: true,
+      });
+    }, el);
+
+    const refresh = () => ScrollTrigger.refresh();
+    window.addEventListener("ps:ready", refresh);
+    requestAnimationFrame(refresh);
+
+    return () => {
+      window.removeEventListener("ps:ready", refresh);
+      ctx.revert();
+    };
+  }, [work.id]);
 
   return (
-    <div ref={ref} className="relative z-10 max-h-[50vh]" style={{ zIndex: 10 + index }}>
-      <motion.div
-        style={{ x, y, rotate, opacity }}
-        className="flex h-screen origin-bottom-right flex-col gap-[0.46296vw] bg-black lg:origin-[0%_25%]"
+    <section
+      ref={root}
+      className="relative h-[100svh]"
+      style={{ zIndex: 20 + index }}
+    >
+      <div
+        ref={face}
+        className="flex h-full flex-col gap-3 overflow-hidden bg-ink px-4 pt-8 pb-4 text-paper md:gap-4 md:px-7 md:pt-10 md:pb-5"
       >
-        <div className="flex max-lg:flex-[0.25] max-lg:pb-5 items-end justify-between px-2 lg:px-[0.46296vw] lg:pt-[2.31481vw] lg:pb-[0.46296vw]">
-          <h2 className="display-huge max-w-[60%] text-[34px] leading-[0.8] md:text-[5.5vw]">
-            {work.title}
-          </h2>
+        <div className="flex items-end justify-between gap-6">
+          <h2 className="case-title max-w-[70%]">{work.title}</h2>
           <Link
             href={`/work/${work.slug}`}
             data-cursor="View"
@@ -179,22 +192,19 @@ export function HighlightCase({
               e.preventDefault();
               router.push(`/work/${work.slug}`);
             }}
-            className="micro shrink-0 text-signal"
+            className="micro shrink-0 pb-1 text-signal"
           >
             View project →
           </Link>
         </div>
 
-        <div className="relative max-lg:flex-[0.75] lg:flex-1">
+        <div className="relative min-h-0 flex-1 overflow-hidden">
           <CardFrame />
-          <motion.div
-            style={{ x: xChild, y: yChild, rotate: rotateChild }}
-            className="h-full w-full"
-          >
+          <div className="absolute inset-0">
             <CaseMedia work={work} />
-          </motion.div>
+          </div>
         </div>
-      </motion.div>
-    </div>
+      </div>
+    </section>
   );
 }

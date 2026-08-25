@@ -35,8 +35,8 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
       <div
         className={
           ready
-            ? "opacity-100 transition-opacity duration-1000 ease-out"
-            : "pointer-events-none opacity-0"
+            ? "relative opacity-100 transition-opacity duration-1000 ease-out"
+            : "pointer-events-none relative opacity-0"
         }
       >
         <div className="grain" aria-hidden />

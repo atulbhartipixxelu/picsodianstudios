@@ -43,6 +43,8 @@ export default async function HomePage() {
       <HomeScrollExperience
         works={featured.length ? featured : publicWorks}
         reel={reel}
+        videoUrl={showreelUrl}
+        poster={showreelPoster}
       />
 
       <Manifesto still={heroWork?.thumbnail} />
