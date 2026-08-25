@@ -7,7 +7,7 @@ export type UploadProgress = {
 };
 
 /** Vercel serverless request body limit — larger files must go client → Blob. */
-const SERVER_BODY_LIMIT = 4 * 1024 * 1024;
+const SERVER_BODY_LIMIT = 3.5 * 1024 * 1024;
 const UPLOAD_TIMEOUT_MS = 180_000;
 
 export function formatBytes(bytes: number) {
@@ -31,6 +31,52 @@ function fileExt(file: File) {
 function safePathname(file: File) {
   const ext = fileExt(file).toLowerCase();
   return `uploads/${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+}
+
+function isStillImage(file: File) {
+  if (file.type === "image/gif") return false;
+  return (
+    file.type.startsWith("image/") || /\.(jpe?g|png|webp)$/i.test(file.name)
+  );
+}
+
+async function compressImage(file: File): Promise<File> {
+  if (!isStillImage(file)) return file;
+
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const el = new Image();
+      el.onload = () => resolve(el);
+      el.onerror = () => reject(new Error("Could not read image."));
+      el.src = url;
+    });
+
+    const max = 1920;
+    const scale = Math.min(1, max / Math.max(img.width, img.height));
+    const width = Math.max(1, Math.round(img.width * scale));
+    const height = Math.max(1, Math.round(img.height * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return file;
+    ctx.drawImage(img, 0, 0, width, height);
+
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/jpeg", 0.84),
+    );
+    if (!blob) return file;
+    if (blob.size >= file.size && file.size <= SERVER_BODY_LIMIT) return file;
+
+    return new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), {
+      type: "image/jpeg",
+    });
+  } catch {
+    return file;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
 }
 
 function xhrUpload(
@@ -60,9 +106,15 @@ function xhrUpload(
           resolve(data.url);
           return;
         }
-        reject(new Error(data.error || "Upload failed."));
+        reject(new Error(data.error || `Upload failed (${xhr.status}).`));
       } catch {
-        reject(new Error("Upload failed."));
+        reject(
+          new Error(
+            xhr.status === 413
+              ? "File is too large for the server. Try a smaller image."
+              : "Upload failed.",
+          ),
+        );
       }
     };
 
@@ -146,6 +198,9 @@ export async function uploadWithProgress(
 ): Promise<string> {
   onProgress({ percent: 0, loaded: 0, total: file.size });
 
+  const prepared = await compressImage(file);
+  onProgress({ percent: 1, loaded: 0, total: prepared.size });
+
   const mode = await fetch("/api/admin/upload", {
     cache: "no-store",
     credentials: "include",
@@ -153,14 +208,19 @@ export async function uploadWithProgress(
     .then((res) => res.json() as Promise<{ blob?: boolean }>)
     .catch(() => ({ blob: false }));
 
-  if (file.size > SERVER_BODY_LIMIT) {
+  if (prepared.size > SERVER_BODY_LIMIT) {
     if (!mode.blob) {
       throw new Error(
-        "This file is larger than 4MB. On Vercel it must go to Blob storage — connect picsodianstudios-blob to this project, then redeploy.",
+        "This file is larger than 4MB. Connect the Blob store to this Vercel project, then redeploy.",
       );
     }
-    return blobDirectUpload(file, onProgress);
+    try {
+      return await blobDirectUpload(prepared, onProgress);
+    } catch {
+      // Token signing can require BLOB_READ_WRITE_TOKEN — try the server path anyway.
+      return xhrUpload(prepared, onProgress);
+    }
   }
 
-  return xhrUpload(file, onProgress);
+  return xhrUpload(prepared, onProgress);
 }

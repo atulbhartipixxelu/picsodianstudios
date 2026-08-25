@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { requireAdmin } from "@/lib/auth";
+import { blobConfigured } from "@/lib/blob";
 
 export const maxDuration = 60;
 export const runtime = "nodejs";
@@ -18,7 +19,7 @@ const ALLOWED = [
 ];
 
 export async function POST(req: Request) {
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+  if (!blobConfigured() && !process.env.VERCEL) {
     return NextResponse.json(
       { error: "Cloud storage is not configured." },
       { status: 501 },
@@ -44,7 +45,12 @@ export async function POST(req: Request) {
   } catch (error) {
     const status = (error as Error & { status?: number }).status === 401 ? 401 : 400;
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Upload token failed." },
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Could not start cloud upload. Connect Blob to this project and keep BLOB_READ_WRITE_TOKEN for large files.",
+      },
       { status },
     );
   }

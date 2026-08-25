@@ -71,13 +71,27 @@ export function WorkForm({
     setValues((v) => ({ ...v, [key]: value }));
   }
 
+  async function persistField(field: MediaField, url: string) {
+    set(field, url);
+    if (!id) return;
+    const res = await fetch(`/api/admin/works/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ [field]: url }),
+    });
+    if (!res.ok) {
+      throw new Error("Uploaded, but could not save the work. Click Save work.");
+    }
+    router.refresh();
+  }
+
   async function upload(field: MediaField, file: File) {
     setError("");
     setUploading(field);
     setProgress({ percent: 0, loaded: 0, total: file.size });
     try {
       const url = await uploadWithProgress(file, setProgress);
-      set(field, url);
+      await persistField(field, url);
     } catch (err) {
       setError(
         err instanceof Error
@@ -127,6 +141,7 @@ export function WorkForm({
 
   return (
     <form onSubmit={onSubmit} className="dash-panel grid gap-5 p-6 md:p-8">
+      {error ? <p className="micro border border-heat px-3 py-2 text-heat">{error}</p> : null}
       <input
         ref={thumbInput}
         type="file"
@@ -321,6 +336,9 @@ function MediaUrlField({
   preview?: boolean;
   uploadLabel?: string;
 }) {
+  const isRemote = /^https?:\/\//i.test(value);
+  const isLocalDisk = /^\/uploads\//i.test(value);
+
   return (
     <div className="grid gap-2">
       <span className="micro text-mist">{label}</span>
@@ -349,8 +367,13 @@ function MediaUrlField({
           {formatBytes(progress.loaded)} / {formatBytes(progress.total)}
         </p>
       ) : null}
-      {preview && value ? (
+      {preview && isRemote ? (
         <img src={value} alt="" className="mt-1 h-20 w-32 object-cover border border-line" />
+      ) : null}
+      {preview && isLocalDisk ? (
+        <p className="micro text-heat">
+          This file is only on the local computer. Upload again so Vercel can store it.
+        </p>
       ) : null}
     </div>
   );
