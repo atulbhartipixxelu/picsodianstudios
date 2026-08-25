@@ -28,14 +28,21 @@ export function Nav() {
     setOpen(false);
   }, [pathname]);
 
+  const isHome = pathname === "/";
+
   function go(href: string) {
     setOpen(false);
     router.push(href);
   }
 
   return (
-    <header className="pointer-events-auto absolute top-0 right-0 left-0 z-[90]">
-      <div className="flex items-center justify-between gap-4 px-4 py-3.5 md:px-7 md:py-4">
+    <header
+      className={cn(
+        "pointer-events-auto z-[90]",
+        isHome ? "absolute top-0 right-0 left-0" : "relative",
+      )}
+    >
+      <div className="flex items-center justify-between gap-4 px-4 py-3 md:px-7 md:py-3.5">
         <Link
           href="/"
           data-cursor="Home"
@@ -45,7 +52,14 @@ export function Nav() {
           }}
           className="relative z-[91] flex items-center gap-3"
         >
-          <Logo variant="header" className="h-16 md:h-20 lg:h-[5.75rem]" />
+          <Logo
+            variant="header"
+            className={
+              isHome
+                ? "h-16 md:h-20 lg:h-[5.75rem]"
+                : "h-12 md:h-14 lg:h-16"
+            }
+          />
         </Link>
 
         <nav className="relative z-[91] hidden items-center gap-1 md:flex">

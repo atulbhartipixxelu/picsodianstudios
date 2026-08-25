@@ -157,7 +157,7 @@ export function Footer() {
               data-cursor="Home"
               className="inline-block transition-transform duration-300 hover:scale-105"
             >
-              <Logo invert className="h-14 md:h-16" />
+              <Logo className="h-14 md:h-16 brightness-0" />
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-ink/80">
               Creative visual studio. Motion, film, character, and worlds built

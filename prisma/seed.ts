@@ -66,9 +66,9 @@ async function main() {
         "https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&w=1600&q=80",
         "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=1600&q=80",
       ]),
-      featured: true,
+      featured: false,
       published: true,
-      sortOrder: 1,
+      sortOrder: 4,
     },
     {
       title: "2D DJ GIRL",
@@ -90,7 +90,7 @@ async function main() {
         "https://images.unsplash.com/photo-1571266028243-d220c6c2fc38?auto=format&fit=crop&w=1600&q=80",
       heroImage:
         "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=2400&q=80",
-      videoUrl: "",
+      videoUrl: "/works/2d-dj-girl.mp4",
       gallery: JSON.stringify([]),
       featured: true,
       published: true,
@@ -113,7 +113,7 @@ async function main() {
         "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1600&q=80",
       heroImage:
         "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=2400&q=80",
-      videoUrl: "",
+      videoUrl: "/works/advance-motion-graphics.mp4",
       gallery: JSON.stringify([]),
       featured: true,
       published: true,
@@ -182,11 +182,11 @@ async function main() {
         "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1600&q=80",
       heroImage:
         "https://images.unsplash.com/photo-1620121692029-d0884565381d?auto=format&fit=crop&w=2400&q=80",
-      videoUrl: "",
+      videoUrl: "/works/prop-animations.mp4",
       gallery: JSON.stringify([]),
-      featured: false,
+      featured: true,
       published: true,
-      sortOrder: 6,
+      sortOrder: 4,
     },
   ];
 

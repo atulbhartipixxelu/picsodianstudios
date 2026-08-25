@@ -8,7 +8,7 @@ export default function ContactPage() {
   return (
     <PageReveal>
       <div className="relative min-h-screen bg-ink text-paper">
-        <section className="grid gap-12 px-4 pt-28 pb-28 md:grid-cols-12 md:px-7 md:pt-32">
+        <section className="grid gap-12 px-4 pt-10 pb-28 md:grid-cols-12 md:px-7 md:pt-12">
           <div className="md:col-span-5">
             <p className="micro text-signal">Contact / Press & business</p>
             <ScrollWords

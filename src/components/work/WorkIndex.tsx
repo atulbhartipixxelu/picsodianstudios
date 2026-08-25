@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -9,9 +9,34 @@ import type { PublicWork } from "@/lib/utils";
 import { FilmFrame } from "@/components/ui/FilmFrame";
 import { PageReveal } from "@/components/ui/PageReveal";
 import { SafeImage } from "@/components/ui/SafeImage";
-import { ScrollWords } from "@/components/ui/ScrollWords";
 
 const FILTERS = ["All", "2D", "Motion", "Film", "Character", "3D"];
+const TITLE = "THE WORK";
+
+function useReelCount(target: number) {
+  const [n, setN] = useState(0);
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setN(target);
+      return;
+    }
+
+    setN(0);
+    if (target <= 0) return;
+
+    let current = 0;
+    const id = window.setInterval(() => {
+      current += 1;
+      setN(current);
+      if (current >= target) window.clearInterval(id);
+    }, 55);
+
+    return () => window.clearInterval(id);
+  }, [target]);
+
+  return n;
+}
 
 export function WorkIndex({ works }: { works: PublicWork[] }) {
   const router = useRouter();
@@ -25,34 +50,32 @@ export function WorkIndex({ works }: { works: PublicWork[] }) {
     return works.filter((w) => w.category === filter);
   }, [filter, works]);
 
+  const reel = useReelCount(visible.length);
+
   const names = works.map((w) => w.title).join("  ·  ") + "  ·  ";
   const marquee = names + names;
 
   return (
     <PageReveal>
       <div className="relative z-10 min-h-screen bg-ink text-paper">
-        <section className="px-4 pt-28 pb-6 md:px-7 md:pt-32">
-          <div className="flex flex-wrap items-end justify-between gap-6">
-            <div>
-              <motion.p
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="micro text-signal"
-              >
-                Index / Work
-              </motion.p>
-              <ScrollWords
-                as="h1"
-                className="display-huge mt-3 text-[16vw] md:text-[8vw]"
-                lines={[`The work [${String(visible.length).padStart(2, "0")}]`]}
-                accent={(word) => word.startsWith("[")}
-              />
+        <section className="work-hero">
+          <div className="work-hero-grid" aria-hidden />
+          <span className="finder finder-tl work-hero-finder" aria-hidden />
+          <span className="finder finder-tr work-hero-finder" aria-hidden />
+          <span className="finder finder-bl work-hero-finder" aria-hidden />
+          <span className="finder finder-br work-hero-finder" aria-hidden />
+          <span className="work-hero-beam" aria-hidden />
+
+          <div className="work-hero-top">
+            <div className="flex items-center gap-3">
+              <span className="crosshair work-hero-cross" aria-hidden />
+              <p className="micro text-signal">Index / Work</p>
             </div>
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              className="micro flex items-center gap-4 text-mist"
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45, duration: 0.55 }}
+              className="micro flex items-center gap-3 text-mist"
             >
               <button
                 onClick={() => setMode("grid")}
@@ -73,9 +96,37 @@ export function WorkIndex({ works }: { works: PublicWork[] }) {
               </button>
             </motion.div>
           </div>
+
+          <div className="work-hero-row">
+            <h1 className="work-hero-title">
+              {TITLE.split("").map((ch, i) => (
+                <span
+                  key={`${ch}-${i}`}
+                  className="work-gate"
+                  style={{ animationDelay: `${0.08 + i * 0.06}s` }}
+                >
+                  <span>{ch === " " ? "\u00A0" : ch}</span>
+                </span>
+              ))}
+              <span
+                className="work-gate work-hero-count"
+                style={{ animationDelay: "0.72s" }}
+              >
+                <span> [{String(reel).padStart(2, "0")}]</span>
+              </span>
+            </h1>
+            <motion.p
+              className="work-hero-lede"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.85, duration: 0.6 }}
+            >
+              Pictures with a pulse. Filter by craft, or switch the index.
+            </motion.p>
+          </div>
         </section>
 
-        <div className="work-marquee mb-4 border-y border-white/8 py-2">
+        <div className="work-marquee border-y border-white/8 py-2.5">
           <p className="work-marquee-track micro text-white/25">{marquee}</p>
         </div>
 

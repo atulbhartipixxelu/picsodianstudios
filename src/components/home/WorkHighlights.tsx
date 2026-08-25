@@ -7,7 +7,6 @@ import { cubicBezier, motion, useScroll, useTransform } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { PublicWork } from "@/lib/utils";
-import { stillSrc } from "@/lib/utils";
 import { embedVideoSrc, isDirectVideo } from "@/lib/video";
 import { CardFrame } from "@/components/ui/CardFrame";
 import { SafeImage } from "@/components/ui/SafeImage";
@@ -23,14 +22,12 @@ const FALLBACK_VIDEO =
  */
 export function WorkHighlights({
   works,
-  still,
 }: {
   works: PublicWork[];
   still?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const count = String(works.length).padStart(2, "0");
-  const backdrop = stillSrc(still || works[0]?.heroImage || works[0]?.thumbnail);
 
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -47,11 +44,12 @@ export function WorkHighlights({
       >
         <div className="absolute inset-0">
           <SafeImage
-            src={backdrop}
+            src="/highlights-city.jpg"
             alt=""
-            className="h-full w-full object-cover"
+            className="highlights-photo h-full w-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/70 to-ink/30" />
+          <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-ink/20" />
+          <div className="absolute inset-0 bg-gradient-to-r from-ink/45 via-transparent to-ink/25" />
         </div>
 
         <div className="relative z-10 flex h-full flex-col px-4 pt-24 pb-10 md:px-8 lg:px-10">

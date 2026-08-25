@@ -17,7 +17,13 @@ export const metadata: Metadata = {
     "Picsodian Studios is a passion-driven creative studio. Motion, film, and visuals that are undeniably cool.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   referrer: "no-referrer",
-  icons: { icon: [{ url: "/logo-white.png" }, { url: "/favicon.svg" }] },
+  icons: {
+    icon: [
+      { url: "/favicon.png", type: "image/png", sizes: "37x35" },
+      { url: "/icon.png", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", type: "image/png" }],
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

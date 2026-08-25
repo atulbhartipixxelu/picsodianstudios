@@ -9,7 +9,8 @@ import { SafeImage } from "@/components/ui/SafeImage";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
-const CRAFT = ["2D", "Motion", "Film"];
+const CRAFT = ["2D", "Motion", "Film", "Character"];
+const LINES = ["Work that", "stays with", "you."];
 
 type Props = {
   still?: string;
@@ -21,42 +22,43 @@ export function Manifesto({ still }: Props) {
   const img = useRef<HTMLImageElement>(null);
   const scan = useRef<HTMLDivElement>(null);
   const [time, setTime] = useState("00:00:00:00");
-  const [tick, setTick] = useState("00");
 
   useGSAP(
     () => {
       const el = root.current;
       if (!el) return;
-      gsap.from(el.querySelectorAll("[data-in]"), {
-        y: 28,
-        opacity: 0,
-        duration: 0.85,
-        stagger: 0.08,
-        ease: "power3.out",
-        scrollTrigger: { trigger: el, start: "top 76%", once: true },
-      });
-      gsap.from(el.querySelectorAll("[data-meter]"), {
-        y: 36,
-        opacity: 0,
-        duration: 0.7,
-        stagger: 0.12,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: el.querySelector(".studio-meter"),
-          start: "top 88%",
-          once: true,
-        },
-      });
-      gsap.from(el.querySelectorAll("[data-meter-val]"), {
-        yPercent: 110,
-        duration: 0.85,
+      const reduced = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+
+      if (reduced) return;
+
+      gsap.from(el.querySelectorAll("[data-line]"), {
+        yPercent: 112,
+        duration: 1.05,
         stagger: 0.12,
         ease: "power4.out",
-        scrollTrigger: {
-          trigger: el.querySelector(".studio-meter"),
-          start: "top 88%",
-          once: true,
-        },
+        scrollTrigger: { trigger: el, start: "top 78%", once: true },
+      });
+
+      gsap.from(el.querySelectorAll("[data-in]"), {
+        y: 22,
+        opacity: 0,
+        duration: 0.8,
+        stagger: 0.08,
+        delay: 0.2,
+        ease: "power3.out",
+        scrollTrigger: { trigger: el, start: "top 78%", once: true },
+      });
+
+      gsap.from(el.querySelector(".studio-gate"), {
+        y: 48,
+        rotate: 6,
+        scale: 0.92,
+        opacity: 0,
+        duration: 1.15,
+        ease: "power4.out",
+        scrollTrigger: { trigger: el, start: "top 78%", once: true },
       });
     },
     { scope: root },
@@ -70,24 +72,22 @@ export function Manifesto({ still }: Props) {
       const m = String(Math.floor(total / 60)).padStart(2, "0");
       const s = String(total % 60).padStart(2, "0");
       setTime(`01:${m}:${s}:${String(frame).padStart(2, "0")}`);
-      setTick(String(frame).padStart(2, "0"));
     }, 1000 / 24);
-    return () => clearInterval(id);
+    return () => window.clearInterval(id);
   }, []);
 
   useEffect(() => {
-    const wrap = root.current;
     const card = stage.current;
     const photo = img.current;
-    if (!wrap || !card) return;
+    if (!card) return;
 
     const onMove = (e: MouseEvent) => {
       const r = card.getBoundingClientRect();
       const mx = (e.clientX - r.left) / r.width - 0.5;
       const my = (e.clientY - r.top) / r.height - 0.5;
-      card.style.transform = `perspective(1100px) rotateY(${mx * 6}deg) rotateX(${-my * 5}deg)`;
+      card.style.transform = `perspective(1100px) rotateY(${mx * 7}deg) rotateX(${-my * 6}deg)`;
       if (photo) {
-        photo.style.transform = `scale(1.08) translate(${mx * -10}px, ${my * -8}px)`;
+        photo.style.transform = `scale(1.1) translate(${mx * -12}px, ${my * -9}px)`;
       }
     };
     const onLeave = () => {
@@ -95,11 +95,11 @@ export function Manifesto({ still }: Props) {
       if (photo) photo.style.transform = "scale(1.04) translate(0,0)";
     };
 
-    wrap.addEventListener("mousemove", onMove);
-    wrap.addEventListener("mouseleave", onLeave);
+    card.addEventListener("mousemove", onMove);
+    card.addEventListener("mouseleave", onLeave);
     return () => {
-      wrap.removeEventListener("mousemove", onMove);
-      wrap.removeEventListener("mouseleave", onLeave);
+      card.removeEventListener("mousemove", onMove);
+      card.removeEventListener("mouseleave", onLeave);
     };
   }, []);
 
@@ -107,10 +107,10 @@ export function Manifesto({ still }: Props) {
     const line = scan.current;
     if (!line) return;
     const tl = gsap.timeline({ repeat: -1, defaults: { ease: "none" } });
-    tl.fromTo(line, { top: "-8%" }, { top: "108%", duration: 2.4 }).to(line, {
-      opacity: 0,
-      duration: 0.2,
-    });
+    tl.fromTo(line, { top: "-10%", opacity: 0.9 }, { top: "110%", duration: 2.6 }).to(
+      line,
+      { opacity: 0, duration: 0.15 },
+    );
     return () => {
       tl.kill();
     };
@@ -121,22 +121,33 @@ export function Manifesto({ still }: Props) {
       ref={root}
       className="studio-block relative z-10 overflow-hidden bg-ink text-paper"
     >
+      <div className="studio-grid-bg" aria-hidden />
       <span className="studio-watermark" aria-hidden>
         Stays
       </span>
 
-      <div className="relative mx-auto max-w-6xl px-4 pt-20 md:px-7 md:pt-28">
+      <div className="relative mx-auto max-w-6xl px-4 py-20 md:px-7 md:py-28">
         <div className="studio-top" data-in>
-          <p className="micro text-paper/80">03 / Who we are</p>
-          <p className="micro hidden text-paper/55 sm:block">Picsodian Studios</p>
+          <div className="flex items-center gap-3">
+            <span className="crosshair" aria-hidden />
+            <p className="micro text-paper/80">03 / Who we are</p>
+          </div>
+          <p className="micro hidden text-paper/50 sm:block">{time}</p>
         </div>
 
         <div className="studio-grid">
           <div>
-            <h2 data-in className="studio-title">
-              <span>Work that</span>
-              <span>stays with</span>
-              <span>you.</span>
+            <h2 className="studio-title">
+              {LINES.map((line) => (
+                <span key={line} className="studio-clip">
+                  <span
+                    data-line
+                    className={line === "you." ? "studio-title-mark" : undefined}
+                  >
+                    {line}
+                  </span>
+                </span>
+              ))}
             </h2>
 
             <p data-in className="studio-lede">
@@ -144,6 +155,12 @@ export function Manifesto({ still }: Props) {
               people who care. Storytelling is more than frames and effects — it
               should hit with energy, then linger.
             </p>
+
+            <div data-in className="studio-pulse">
+              <span>24 fps</span>
+              <span>∞ frames</span>
+              <span>01 vision</span>
+            </div>
 
             <Link
               data-in
@@ -156,7 +173,7 @@ export function Manifesto({ still }: Props) {
             </Link>
           </div>
 
-          <div data-in>
+          <div>
             <div
               ref={stage}
               className="studio-gate transition-transform duration-200 ease-out"
@@ -177,7 +194,11 @@ export function Manifesto({ still }: Props) {
                   />
                 ) : (
                   <div className="grid h-full place-items-center bg-ink">
-                    <SafeImage src="/logo-white.png" alt="" className="w-1/2 opacity-80" />
+                    <SafeImage
+                      src="/logo-white.png"
+                      alt=""
+                      className="w-1/2 opacity-80"
+                    />
                   </div>
                 )}
 
@@ -190,7 +211,7 @@ export function Manifesto({ still }: Props) {
               <div className="studio-hud">
                 <p className="micro text-paper">{time}</p>
                 <p className="micro flex items-center gap-2 text-paper">
-                  <span className="h-1.5 w-1.5 rounded-full bg-paper" />
+                  <span className="studio-rec-dot" />
                   Rec
                 </p>
               </div>
@@ -203,45 +224,6 @@ export function Manifesto({ still }: Props) {
             </ul>
           </div>
         </div>
-      </div>
-
-      <div className="studio-meter">
-        <span className="studio-meter-rail" aria-hidden />
-        <span className="studio-meter-playhead" aria-hidden />
-        <dl className="studio-meter-grid">
-          <div data-meter className="studio-meter-cell">
-            <span className="studio-meter-no">01</span>
-            <dt>Frame rate</dt>
-            <dd>
-              <span className="studio-meter-clip">
-                <span data-meter-val>24 fps</span>
-              </span>
-              <span className="studio-meter-live">{tick}</span>
-            </dd>
-          </div>
-          <div data-meter className="studio-meter-cell">
-            <span className="studio-meter-no">02</span>
-            <dt>Canvas</dt>
-            <dd>
-              <span className="studio-meter-clip">
-                <span data-meter-val>
-                  <span className="studio-meter-infinity">∞</span> frames
-                </span>
-              </span>
-            </dd>
-          </div>
-          <div data-meter className="studio-meter-cell">
-            <span className="studio-meter-no">03</span>
-            <dt>Focus</dt>
-            <dd>
-              <span className="studio-meter-clip">
-                <span data-meter-val>01 vision</span>
-              </span>
-              <span className="studio-meter-cursor" aria-hidden />
-            </dd>
-          </div>
-        </dl>
-        <span className="studio-meter-rail" aria-hidden />
       </div>
     </section>
   );
