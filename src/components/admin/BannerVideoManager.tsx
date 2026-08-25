@@ -4,6 +4,13 @@ import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 import { Upload, Film, ImageIcon, Link2, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SafeImage } from "@/components/ui/SafeImage";
+import { publishShowreel } from "@/lib/showreel";
+import {
+  formatBytes,
+  uploadWithProgress,
+  type UploadProgress,
+} from "@/lib/uploadClient";
 
 type BannerSettings = {
   showreelUrl: string;
@@ -30,6 +37,7 @@ export function BannerVideoManager({ initial, variant = "full" }: Props) {
 
   const [values, setValues] = useState(initial);
   const [uploading, setUploading] = useState<"video" | "poster" | null>(null);
+  const [progress, setProgress] = useState<UploadProgress | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
@@ -40,12 +48,14 @@ export function BannerVideoManager({ initial, variant = "full" }: Props) {
       const res = await fetch("/api/admin/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
+        cache: "no-store",
         body: JSON.stringify(next),
       });
       if (!res.ok) {
         setError("Save failed. Try again.");
         return false;
       }
+      publishShowreel(next);
       setSaved(true);
       router.refresh();
       window.setTimeout(() => setSaved(false), 4000);
@@ -65,25 +75,22 @@ export function BannerVideoManager({ initial, variant = "full" }: Props) {
     }
 
     setUploading(kind);
+    setProgress({ percent: 0, loaded: 0, total: file.size });
     setError("");
     setSaved(false);
 
-    const body = new FormData();
-    body.append("file", file);
-
-    const res = await fetch("/api/admin/upload", { method: "POST", body });
-    const data = await res.json();
-    setUploading(null);
-
-    if (!res.ok || !data.url) {
-      setError(data.error || "Upload failed. Max 100MB for video.");
-      return;
+    try {
+      const url = await uploadWithProgress(file, setProgress);
+      const field = kind === "video" ? "showreelUrl" : "showreelPoster";
+      const next = { ...values, [field]: url };
+      setValues(next);
+      await persist(next);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed. Max 100MB for video.");
+    } finally {
+      setUploading(null);
+      setProgress(null);
     }
-
-    const field = kind === "video" ? "showreelUrl" : "showreelPoster";
-    const next = { ...values, [field]: data.url as string };
-    setValues(next);
-    await persist(next);
   }
 
   function onVideoInput(e: React.ChangeEvent<HTMLInputElement>) {
@@ -157,9 +164,25 @@ export function BannerVideoManager({ initial, variant = "full" }: Props) {
                 No banner video yet
               </div>
             )}
-            {uploading === "video" ? (
-              <div className="absolute inset-0 grid place-items-center bg-black/70">
-                <p className="micro animate-pulse text-signal">Uploading video…</p>
+            {uploading ? (
+              <div className="absolute inset-0 grid place-items-center bg-black/75 px-6">
+                <div className="w-full max-w-sm">
+                  <p className="micro text-signal">
+                    Uploading {uploading === "video" ? "video" : "poster"}
+                  </p>
+                  <p className="mt-2 font-display text-3xl text-white">
+                    {progress?.percent ?? 0}%
+                  </p>
+                  <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/15">
+                    <div
+                      className="h-full bg-signal transition-[width] duration-150"
+                      style={{ width: `${progress?.percent ?? 0}%` }}
+                    />
+                  </div>
+                  <p className="micro mt-2 text-white/50">
+                    {formatBytes(progress?.loaded ?? 0)} / {formatBytes(progress?.total ?? 0)}
+                  </p>
+                </div>
               </div>
             ) : null}
           </div>
@@ -204,6 +227,20 @@ export function BannerVideoManager({ initial, variant = "full" }: Props) {
                 Drag & drop video here
               </p>
               <p className="micro mt-1 text-white/30">MP4, WebM, MOV — max 100MB</p>
+              {uploading === "video" && progress ? (
+                <div className="mx-auto mt-4 max-w-xs text-left">
+                  <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+                    <div
+                      className="h-full bg-signal transition-[width] duration-150"
+                      style={{ width: `${progress.percent}%` }}
+                    />
+                  </div>
+                  <p className="micro mt-2 text-white/50">
+                    {progress.percent}% · {formatBytes(progress.loaded)} of{" "}
+                    {formatBytes(progress.total)}
+                  </p>
+                </div>
+              ) : null}
               <button
                 type="button"
                 disabled={uploading !== null}
@@ -211,12 +248,14 @@ export function BannerVideoManager({ initial, variant = "full" }: Props) {
                 className="mt-4 inline-flex items-center gap-2 bg-signal px-5 py-2.5 text-ink micro disabled:opacity-50"
               >
                 <Film size={14} />
-                {uploading === "video" ? "Uploading…" : "Upload from computer"}
+                {uploading === "video"
+                  ? `Uploading ${progress?.percent ?? 0}%`
+                  : "Upload from computer"}
               </button>
             </div>
 
             {saved ? (
-              <p className="mt-4 flex items-center gap-2 text-sm text-emerald-400">
+              <p className="mt-4 flex items-center gap-2 text-sm text-paper">
                 <CheckCircle2 size={16} />
                 Banner updated — homepage will show this video
               </p>
@@ -269,7 +308,9 @@ export function BannerVideoManager({ initial, variant = "full" }: Props) {
                 onClick={() => posterInputRef.current?.click()}
                 className="border border-white/15 px-4 py-2.5 micro hover:border-signal hover:text-signal disabled:opacity-50"
               >
-                {uploading === "poster" ? "Uploading…" : "Upload poster"}
+                {uploading === "poster"
+                  ? `Uploading ${progress?.percent ?? 0}%`
+                  : "Upload poster"}
               </button>
               <button
                 type="button"
@@ -282,7 +323,7 @@ export function BannerVideoManager({ initial, variant = "full" }: Props) {
           </div>
 
           {values.showreelPoster ? (
-            <img
+            <SafeImage
               src={values.showreelPoster}
               alt="Poster preview"
               className="h-24 w-40 border border-white/10 object-cover"

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Pencil, Plus } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { SafeImage } from "@/components/ui/SafeImage";
 
 export default async function AdminWorksPage() {
   const works = await prisma.work.findMany({
@@ -51,8 +52,8 @@ export default async function AdminWorksPage() {
               >
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-4">
-                    <img
-                      src={work.thumbnail}
+                    <SafeImage
+                      src={work.thumbnail || work.heroImage}
                       alt={work.title}
                       className="h-14 w-20 shrink-0 object-cover"
                     />

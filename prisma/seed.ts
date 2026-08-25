@@ -25,8 +25,7 @@ async function main() {
     update: {},
     create: {
       id: "studio",
-      showreelUrl:
-        "https://videos.pexels.com/video-files/5752729/5752729-uhd_2560_1440_30fps.mp4",
+      showreelUrl: "/homepagevideo.mp4",
       showreelPoster:
         "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=2400&q=80",
       tagline: "Creative visual studio. Motion, film, and worlds that stay with you.",

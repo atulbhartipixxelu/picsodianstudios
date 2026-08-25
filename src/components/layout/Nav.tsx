@@ -64,14 +64,14 @@ export function Nav() {
                     go(link.href);
                   }}
                   className={cn(
-                    "px-3 py-2 text-[13px] tracking-[0.18em] uppercase transition-colors drop-shadow-[0_1px_6px_rgba(0,0,0,0.85)]",
+                    "px-3 py-2 text-[13px] tracking-[0.18em] uppercase transition-colors drop-shadow-[0_1px_6px_rgba(51,51,51,0.85)]",
                     active ? "text-signal" : "text-paper hover:text-signal",
                   )}
                 >
                   {link.label}
                 </Link>
                 {i < LINKS.length - 1 && (
-                  <span className="pointer-events-none text-paper/40 drop-shadow-[0_1px_6px_rgba(0,0,0,0.85)]">
+                  <span className="pointer-events-none text-paper/40 drop-shadow-[0_1px_6px_rgba(51,51,51,0.85)]">
                     /
                   </span>
                 )}
@@ -81,13 +81,13 @@ export function Nav() {
         </nav>
 
         <div className="flex items-center gap-4">
-          <p className="micro hidden text-paper/90 drop-shadow-[0_1px_6px_rgba(0,0,0,0.85)] sm:block">
+          <p className="micro hidden text-paper/90 drop-shadow-[0_1px_6px_rgba(51,51,51,0.85)] sm:block">
             {String(frame).padStart(2, "0")}
             <span className="text-mist">/24 fps</span>
           </p>
           <button
             type="button"
-            className="relative z-[91] micro text-paper drop-shadow-[0_1px_6px_rgba(0,0,0,0.85)] md:hidden"
+            className="relative z-[91] micro text-paper drop-shadow-[0_1px_6px_rgba(51,51,51,0.85)] md:hidden"
             onClick={() => setOpen((v) => !v)}
             aria-label="Menu"
           >

@@ -1,5 +1,7 @@
 "use client";
 
+import { SafeImage } from "@/components/ui/SafeImage";
+
 const CARTOON = "/cartoon-backdrop.png";
 
 /**
@@ -7,10 +9,10 @@ const CARTOON = "/cartoon-backdrop.png";
  */
 export function LineScrollStage({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative max-w-[100vw] overflow-x-clip lg:mb-[25vh]">
+    <div className="relative z-0 isolate max-w-[100vw] overflow-x-clip">
       <div className="sticky top-0 z-10 pb-[100vh]">
         <div className="relative h-screen overflow-hidden bg-ink">
-          <img
+          <SafeImage
             src={CARTOON}
             alt=""
             className="absolute inset-0 h-full w-full scale-105 object-cover"

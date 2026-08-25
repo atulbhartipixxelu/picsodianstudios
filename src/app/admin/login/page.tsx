@@ -1,16 +1,14 @@
 import { prisma } from "@/lib/prisma";
 import { LoginForm } from "@/components/admin/LoginForm";
+import { FALLBACK_SHOWREEL } from "@/lib/video";
 
 export const dynamic = "force-dynamic";
-
-const FALLBACK_VIDEO =
-  "https://videos.pexels.com/video-files/5752729/5752729-uhd_2560_1440_30fps.mp4";
 const FALLBACK_POSTER =
   "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=2400&q=80";
 
 export default async function AdminLoginPage() {
   const settings = await prisma.setting.findUnique({ where: { id: "studio" } });
-  const videoUrl = settings?.showreelUrl || FALLBACK_VIDEO;
+  const videoUrl = settings?.showreelUrl || FALLBACK_SHOWREEL;
   const poster = settings?.showreelPoster || FALLBACK_POSTER;
 
   const isEmbed =
@@ -38,7 +36,7 @@ export default async function AdminLoginPage() {
           playsInline
         />
       )}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(7,7,8,0.35),rgba(7,7,8,0.82))]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(51,51,51,0.35),rgba(51,51,51,0.82))]" />
       <div className="relative z-10 w-full max-w-4xl">
         <LoginForm />
       </div>

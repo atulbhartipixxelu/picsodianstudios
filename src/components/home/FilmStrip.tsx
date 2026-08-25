@@ -6,6 +6,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { PublicWork } from "@/lib/utils";
 import { LineMask } from "@/components/ui/LineMask";
+import { SafeImage } from "@/components/ui/SafeImage";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -75,8 +76,8 @@ export function FilmStrip({ works }: { works: PublicWork[] }) {
                   <span className="h-2 w-3 rounded-sm bg-ink/80" />
                   <span className="h-2 w-3 rounded-sm bg-ink/80" />
                 </div>
-                <img
-                  src={work.thumbnail}
+                <SafeImage
+                  src={work.thumbnail || work.heroImage}
                   alt={work.title}
                   className="aspect-[16/10] w-full object-cover transition duration-700 group-hover:scale-105"
                 />

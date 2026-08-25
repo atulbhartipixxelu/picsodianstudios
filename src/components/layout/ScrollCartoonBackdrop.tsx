@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
+import { SafeImage } from "@/components/ui/SafeImage";
 
 const CARTOON_SRC = "/cartoon-backdrop.png";
 
@@ -30,7 +31,7 @@ export function ScrollCartoonBackdrop({ containerRef }: Props) {
       aria-hidden
     >
       <motion.div style={{ y, scale }} className="absolute inset-[-12%]">
-        <img
+        <SafeImage
           src={CARTOON_SRC}
           alt=""
           className="h-full w-full object-cover opacity-95"
@@ -60,7 +61,7 @@ export function SectionCartoonPeek({
 
   return (
     <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-      <img
+      <SafeImage
         src={src}
         alt=""
         className={`absolute inset-0 h-full w-[130%] max-w-none ${objectPos} object-cover opacity-75`}

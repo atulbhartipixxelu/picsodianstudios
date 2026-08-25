@@ -27,6 +27,7 @@ export async function PATCH(req: Request) {
       update: body,
       create: { id: "studio", ...body },
     });
+    revalidatePath("/", "layout");
     revalidatePath("/");
     revalidatePath("/admin");
     revalidatePath("/admin/banner");

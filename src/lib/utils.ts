@@ -2,6 +2,13 @@ export function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
+export const FALLBACK_STILL = "/cartoon-backdrop.png";
+
+export function stillSrc(url?: string | null) {
+  const value = url?.trim();
+  return value ? value : FALLBACK_STILL;
+}
+
 export function slugify(value: string) {
   return value
     .toLowerCase()

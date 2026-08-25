@@ -26,6 +26,7 @@ export function HomeScrollExperience({ works, reel }: Props) {
               work={work}
               index={i}
               total={reel.length}
+              isLast={i === reel.length - 1}
             />
           ))}
         </div>

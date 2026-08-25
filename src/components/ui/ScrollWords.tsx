@@ -41,17 +41,10 @@ export function ScrollWords({
       const el = ref.current;
       if (!el) return;
       const row = el.querySelectorAll<HTMLElement>(".heading-line");
-      gsap.set(row, { opacity: 0.16, color: "#9c9a9a" });
+      gsap.set(row, { opacity: 0.16, color: "#F2F0F0" });
       gsap.to(row, {
         opacity: 1,
-        color: (i) => {
-          const line = lines[i] ?? "";
-          const first = line.split(" ")[0] ?? "";
-          return isAccent(line, accent, accentWords) ||
-            isAccent(first, accent, accentWords)
-            ? "#ff4444"
-            : "#f2f0f0";
-        },
+        color: "#F2F0F0",
         stagger: 0.14,
         ease: "none",
         scrollTrigger: {

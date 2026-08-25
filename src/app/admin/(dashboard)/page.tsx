@@ -4,6 +4,7 @@ import { Clapperboard, Inbox, Plus, Sparkles } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { DashboardCharts } from "@/components/admin/DashboardCharts";
 import { BannerVideoManager } from "@/components/admin/BannerVideoManager";
+import { SafeImage } from "@/components/ui/SafeImage";
 
 export default async function AdminHomePage() {
   const [works, enquiries, unread, recentWorks, allWorks, settings] = await Promise.all([
@@ -165,8 +166,8 @@ export default async function AdminHomePage() {
                 href={`/admin/works/${work.id}`}
                 className="group overflow-hidden border border-white/10 bg-ink-2"
               >
-                <img
-                  src={work.thumbnail}
+                <SafeImage
+                  src={work.thumbnail || work.heroImage}
                   alt={work.title}
                   className="aspect-[4/3] w-full object-cover transition duration-500 group-hover:scale-105"
                 />

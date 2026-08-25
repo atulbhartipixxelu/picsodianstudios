@@ -35,7 +35,7 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
       <div
         className={
           ready
-            ? "opacity-100 transition-opacity duration-700"
+            ? "opacity-100 transition-opacity duration-1000 ease-out"
             : "pointer-events-none opacity-0"
         }
       >

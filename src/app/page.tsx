@@ -4,15 +4,13 @@ import { FeaturedWork } from "@/components/home/FeaturedWork";
 import { FilmStrip } from "@/components/home/FilmStrip";
 import { HomeClose } from "@/components/home/HomeClose";
 import { HomeScrollExperience } from "@/components/home/HomeScrollExperience";
-import { Manifesto, StudioGate } from "@/components/home/Manifesto";
+import { Manifesto } from "@/components/home/Manifesto";
 import { ServicesMarquee } from "@/components/home/ServicesMarquee";
 import { ShowreelHero } from "@/components/home/ShowreelHero";
 import { HeroScrollWrap } from "@/components/layout/HeroScrollWrap";
+import { FALLBACK_SHOWREEL } from "@/lib/video";
 
 export const dynamic = "force-dynamic";
-
-const FALLBACK_VIDEO =
-  "https://videos.pexels.com/video-files/5752729/5752729-uhd_2560_1440_30fps.mp4";
 
 export default async function HomePage() {
   const [works, settings] = await Promise.all([
@@ -29,7 +27,7 @@ export default async function HomePage() {
   const heroWork =
     publicWorks.find((w) => w.slug === "the-crew") ?? publicWorks[0] ?? null;
 
-  const showreelUrl = settings?.showreelUrl || FALLBACK_VIDEO;
+  const showreelUrl = settings?.showreelUrl || FALLBACK_SHOWREEL;
   const showreelPoster =
     settings?.showreelPoster ||
     "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=2400&q=80";
@@ -47,11 +45,15 @@ export default async function HomePage() {
         reel={reel}
       />
 
-      <Manifesto />
-      <StudioGate still={heroWork?.thumbnail} />
+      <Manifesto still={heroWork?.thumbnail} />
       <FilmStrip works={featured.length ? featured : publicWorks} />
       <FeaturedWork work={heroWork} />
-      <ServicesMarquee />
+      <ServicesMarquee
+        stills={(featured.length ? featured : publicWorks)
+          .slice(0, 8)
+          .map((w) => w.thumbnail || w.heroImage)
+          .filter(Boolean)}
+      />
       <HomeClose
         stills={(featured.length ? featured : publicWorks)
           .slice(0, 3)

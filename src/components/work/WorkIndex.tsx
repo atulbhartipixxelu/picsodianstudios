@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import type { PublicWork } from "@/lib/utils";
 import { FilmFrame } from "@/components/ui/FilmFrame";
 import { PageReveal } from "@/components/ui/PageReveal";
+import { SafeImage } from "@/components/ui/SafeImage";
 import { ScrollWords } from "@/components/ui/ScrollWords";
 
 const FILTERS = ["All", "2D", "Motion", "Film", "Character", "3D"];
@@ -196,8 +197,8 @@ export function WorkIndex({ works }: { works: PublicWork[] }) {
                 transition={{ type: "spring", stiffness: 220, damping: 22, mass: 0.6 }}
               >
                 {preview ? (
-                  <img
-                    src={preview.thumbnail}
+                  <SafeImage
+                    src={preview.thumbnail || preview.heroImage}
                     alt={preview.title}
                     className="aspect-[16/10] w-full object-cover"
                   />

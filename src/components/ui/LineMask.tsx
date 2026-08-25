@@ -23,10 +23,10 @@ export function LineMask({
       const el = ref.current;
       if (!el) return;
       const row = el.querySelectorAll<HTMLElement>(".heading-line");
-      gsap.set(row, { opacity: 0.16, color: "#9c9a9a" });
+      gsap.set(row, { opacity: 0.16, color: "#F2F0F0" });
       gsap.to(row, {
         opacity: 1,
-        color: (i) => (accent?.(lines[i] ?? "") ? "#ff4444" : "#f2f0f0"),
+        color: "#F2F0F0",
         stagger: 0.12,
         ease: "none",
         scrollTrigger: {

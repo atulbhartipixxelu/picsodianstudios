@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 
 export type ChartSlice = { label: string; value: number };
 
-const COLORS = ["#ff4444", "#ff6a3d", "#f2f0f0", "#9c9a9a", "#c45c5c", "#6b6560"];
+const COLORS = ["#F2F0F0", "#333333", "#F2F0F0", "#333333", "#F2F0F0", "#333333"];
 
 export function DashboardCharts({
   byCategory,
@@ -74,7 +74,7 @@ function DonutChart({ data }: { data: ChartSlice[] }) {
             cy="100"
             r={radius}
             fill="none"
-            stroke="rgba(255,255,255,0.06)"
+            stroke="rgba(242,240,240,0.06)"
             strokeWidth="22"
           />
           {slices.map((slice, i) => (
@@ -168,7 +168,7 @@ function BarChart({ data }: { data: ChartSlice[] }) {
                 <div className="absolute inset-0 bg-white/[0.03]" />
                 <motion.div
                   className="relative w-full origin-bottom"
-                  style={{ background: on ? "#ff6a3d" : "#ff4444" }}
+                  style={{ background: on ? "#F2F0F0" : "rgba(242, 240, 240, 0.35)" }}
                   initial={{ height: 0 }}
                   animate={{ height: `${height}%` }}
                   transition={{ duration: 0.7, delay: i * 0.07, ease: [0.22, 1, 0.36, 1] }}

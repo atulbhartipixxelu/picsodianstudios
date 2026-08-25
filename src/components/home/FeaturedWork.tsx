@@ -5,7 +5,9 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { PublicWork } from "@/lib/utils";
+import { FeaturedSmoke } from "@/components/home/FeaturedSmoke";
 import { LineMask } from "@/components/ui/LineMask";
+import { SafeImage } from "@/components/ui/SafeImage";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -40,13 +42,15 @@ export function FeaturedWork({ work }: { work: PublicWork | null }) {
 
   return (
     <section ref={root} className="relative min-h-[100svh] overflow-hidden bg-ink">
-      <img
+      <SafeImage
         ref={img}
         src={work.heroImage || work.thumbnail}
         alt={work.title}
         className="absolute inset-0 h-full w-full object-cover opacity-40"
       />
-      <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/80 to-ink/20" />
+
+      <div className="absolute inset-0 z-[2] bg-gradient-to-r from-ink via-ink/70 to-ink/20" />
+      <FeaturedSmoke />
 
       <div className="relative z-10 grid min-h-[100svh] items-end gap-10 px-4 py-24 md:grid-cols-12 md:px-7">
         <div className="md:col-span-7">
@@ -55,7 +59,7 @@ export function FeaturedWork({ work }: { work: PublicWork | null }) {
             lines={[work.title]}
             className="display-huge mt-4 text-[14vw] md:text-[8vw]"
           />
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-paper/75">
+          <p className="featured-copy mt-6 max-w-xl">
             {work.synopsis}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
@@ -75,12 +79,12 @@ export function FeaturedWork({ work }: { work: PublicWork | null }) {
             </Link>
           </div>
         </div>
-        <div className="micro space-y-4 text-paper/70 md:col-span-4 md:col-start-9">
-          <p>/ Overview</p>
-          <p className="font-body text-sm leading-relaxed tracking-normal normal-case">
+        <div className="space-y-4 text-paper/70 md:col-span-4 md:col-start-9">
+          <p className="micro">/ Overview</p>
+          <p className="featured-copy featured-copy-sm">
             {work.overview}
           </p>
-          <p className="pt-4 text-signal">
+          <p className="micro pt-4 text-paper">
             {work.year} · {work.category} · {work.client}
           </p>
         </div>

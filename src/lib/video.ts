@@ -1,3 +1,5 @@
+export const FALLBACK_SHOWREEL = "/homepagevideo.mp4";
+
 export function embedVideoSrc(url: string) {
   if (!url) return null;
   const yt = url.match(

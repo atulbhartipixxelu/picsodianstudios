@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { PublicWork } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { SafeImage } from "@/components/ui/SafeImage";
 
 export function FilmFrame({
   work,
@@ -25,8 +26,8 @@ export function FilmFrame({
           <span className="h-2 w-3 bg-ink/85" />
           <span className="h-2 w-3 bg-ink/85" />
         </div>
-        <motion.img
-          src={work.thumbnail}
+        <SafeImage
+          src={work.thumbnail || work.heroImage}
           alt={work.title}
           className="aspect-[16/10] w-full object-cover transition duration-700 ease-out group-hover:scale-110"
         />

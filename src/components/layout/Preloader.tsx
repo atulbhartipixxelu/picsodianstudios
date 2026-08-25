@@ -3,18 +3,26 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { playCountSound, unlockLoaderAudio } from "@/lib/loaderSound";
+import { embedVideoSrc, FALLBACK_SHOWREEL } from "@/lib/video";
 
 type Props = {
   onComplete: () => void;
 };
 
 const ORBIT_COPY = "PICSODIAN STUDIOS  ·  24 FPS  ·  GATE  ·  SILENCE ON SET  ·  ";
+const SMOOTH: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 export function Preloader({ onComplete }: Props) {
   const [visible, setVisible] = useState(true);
+  const [started, setStarted] = useState(false);
   const [count, setCount] = useState(3);
   const [tc, setTc] = useState("00:00:00:00");
+  const [media, setMedia] = useState({
+    url: FALLBACK_SHOWREEL,
+    poster: "",
+  });
   const done = useRef(false);
+  const revealed = useRef(false);
 
   function finish() {
     if (done.current) return;
@@ -24,16 +32,36 @@ export function Preloader({ onComplete }: Props) {
     onComplete();
   }
 
+  function revealSite() {
+    if (revealed.current) return;
+    revealed.current = true;
+    onComplete();
+  }
+
   useEffect(() => {
     document.documentElement.classList.add("is-booting");
     document.body.style.overflow = "hidden";
 
+    fetch("/api/studio", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data: { showreelUrl?: string; showreelPoster?: string }) => {
+        if (data.showreelUrl) {
+          setMedia({
+            url: data.showreelUrl,
+            poster: data.showreelPoster ?? "",
+          });
+        }
+      })
+      .catch(() => {});
+
+    const hold = 1000;
     const timers = [
-      window.setTimeout(() => setCount(2), 800),
-      window.setTimeout(() => setCount(1), 1600),
-      window.setTimeout(() => setCount(0), 2400),
-      window.setTimeout(() => setVisible(false), 3400),
-      window.setTimeout(finish, 4300),
+      window.setTimeout(() => setStarted(true), hold),
+      window.setTimeout(() => setCount(2), hold + 1100),
+      window.setTimeout(() => setCount(1), hold + 2200),
+      window.setTimeout(() => setCount(0), hold + 3300),
+      window.setTimeout(revealSite, hold + 3900),
+      window.setTimeout(() => setVisible(false), hold + 4300),
     ];
 
     let frames = 0;
@@ -60,10 +88,11 @@ export function Preloader({ onComplete }: Props) {
   }, []);
 
   useEffect(() => {
+    if (!started) return;
     playCountSound(count === 0 ? "go" : "tick");
-  }, [count]);
+  }, [count, started]);
 
-  const ghost = count === 3 ? null : count === 0 ? "1" : String(count + 1);
+  const label = !started ? null : count === 0 ? "GO" : String(count);
 
   return (
     <AnimatePresence onExitComplete={finish}>
@@ -71,37 +100,58 @@ export function Preloader({ onComplete }: Props) {
         <motion.div
           key="preloader"
           className="fixed inset-0 z-[200] flex items-center justify-center overflow-hidden bg-ink"
-          initial={{ y: 0 }}
-          exit={{ y: "-100%", transition: { duration: 0.85, ease: [0.76, 0, 0.24, 1] } }}
+          initial={{ y: 0, opacity: 1 }}
+          exit={{
+            y: "-100%",
+            transition: { duration: 1.15, ease: [0.76, 0, 0.24, 1] },
+          }}
         >
-          <LoaderBackdrop count={count} timecode={tc} />
+          <LoaderVideo src={media.url} poster={media.poster} />
+          <LoaderBackdrop count={started ? count : -1} timecode={tc} />
 
           <div className="relative z-20 flex flex-col items-center gap-6">
-            <p className="micro text-mist">Picsodian / Gate</p>
-            <div className="relative">
-              {ghost ? (
-                <motion.p
-                  key={`ghost-${ghost}`}
-                  initial={{ opacity: 0.5, scale: 1, x: 0, filter: "blur(0px)" }}
-                  animate={{ opacity: 0, scale: 1.45, x: 48, filter: "blur(16px)" }}
-                  transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                  className="display-huge pointer-events-none absolute inset-0 text-center text-[22vw] text-[#4ec8ff]/40 md:text-[12rem]"
-                >
-                  {ghost}
-                </motion.p>
-              ) : null}
-              <motion.p
-                key={count}
-                initial={{ opacity: 0, scale: 1.2, filter: "blur(12px)" }}
-                animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-                className="loader-num display-huge text-[22vw] text-signal md:text-[12rem]"
-              >
-                {count === 0 ? "GO" : count}
-              </motion.p>
+            <motion.p
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: SMOOTH }}
+              className="micro text-mist"
+            >
+              Picsodian / Gate
+            </motion.p>
+
+            <div className="relative grid h-[22vw] w-[min(72vw,22rem)] place-items-center md:h-48">
+              <AnimatePresence>
+                {label ? (
+                  <motion.p
+                    key={label}
+                    initial={{ opacity: 0, y: 36, filter: "blur(10px)", scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, filter: "blur(0px)", scale: 1 }}
+                    exit={{ opacity: 0, y: -32, filter: "blur(10px)", scale: 1.04 }}
+                    transition={{ duration: 0.75, ease: SMOOTH }}
+                    className="loader-num display-huge absolute inset-0 grid place-items-center text-[22vw] text-signal md:text-[12rem]"
+                  >
+                    {label}
+                  </motion.p>
+                ) : null}
+              </AnimatePresence>
             </div>
-            <p className="micro text-paper/70">
-              {count === 0 ? "Action" : "24 fps · silence on set"}
-            </p>
+
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={!started ? "hold" : count === 0 ? "action" : "count"}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.45, ease: SMOOTH }}
+                className="micro text-paper/70"
+              >
+                {!started
+                  ? "Stand by"
+                  : count === 0
+                    ? "Action"
+                    : "24 fps · silence on set"}
+              </motion.p>
+            </AnimatePresence>
           </div>
         </motion.div>
       ) : null}
@@ -109,10 +159,76 @@ export function Preloader({ onComplete }: Props) {
   );
 }
 
+function LoaderVideo({ src, poster }: { src: string; poster: string }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [live, setLive] = useState(false);
+  const embed = embedVideoSrc(src);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    let cancelled = false;
+    const kick = () => {
+      if (cancelled) return;
+      video.muted = true;
+      video.defaultMuted = true;
+      video.playsInline = true;
+      const play = video.play();
+      if (play) play.then(() => setLive(true)).catch(() => {});
+    };
+
+    const onReady = () => {
+      setLive(true);
+      kick();
+    };
+
+    video.addEventListener("canplay", onReady);
+    video.addEventListener("playing", onReady);
+    kick();
+
+    return () => {
+      cancelled = true;
+      video.removeEventListener("canplay", onReady);
+      video.removeEventListener("playing", onReady);
+      video.pause();
+    };
+  }, [src]);
+
+  return (
+    <div className="absolute inset-0 z-0 overflow-hidden" aria-hidden>
+      {embed ? (
+        <iframe
+          key={src}
+          src={embed}
+          title="Loader showreel"
+          className="loader-video pointer-events-none absolute inset-0 h-full w-full scale-110 border-0"
+          allow="autoplay; muted"
+        />
+      ) : (
+        <video
+          key={src}
+          ref={videoRef}
+          className="loader-video"
+          src={src}
+          poster={poster || undefined}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          data-ready={live ? "1" : "0"}
+        />
+      )}
+      <div className="loader-video-veil" />
+    </div>
+  );
+}
+
 function LoaderBackdrop({ count, timecode }: { count: number; timecode: string }) {
   const dust = useMemo(
     () =>
-      Array.from({ length: 26 }, (_, i) => ({
+      Array.from({ length: 18 }, (_, i) => ({
         left: `${(i * 41) % 100}%`,
         top: `${(i * 27 + 8) % 90}%`,
         size: 1 + (i % 3),
@@ -123,7 +239,7 @@ function LoaderBackdrop({ count, timecode }: { count: number; timecode: string }
   );
 
   return (
-    <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden>
+    <div className="pointer-events-none absolute inset-0 z-10 overflow-hidden" aria-hidden>
       <div className="loader-beam" />
       <div className="loader-reel" />
       <div className="loader-glow" />
@@ -131,22 +247,10 @@ function LoaderBackdrop({ count, timecode }: { count: number; timecode: string }
       <motion.div
         key={`leader-${count}`}
         className="loader-leader"
-        initial={{ opacity: 0.15 }}
-        animate={{ opacity: 0.35 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.28 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
       />
-
-      <div className="loader-blades">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <motion.span
-            key={`${count}-blade-${i}`}
-            className="loader-blade"
-            style={{ transformOrigin: "0 0" }}
-            initial={{ rotate: i * 45 - 22 }}
-            animate={{ rotate: [i * 45 - 22, i * 45 + 10, i * 45 - 14] }}
-            transition={{ duration: 0.72, ease: [0.65, 0, 0.2, 1] }}
-          />
-        ))}
-      </div>
 
       <svg className="loader-orbit" viewBox="0 0 400 400">
         <defs>

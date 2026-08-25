@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
+import { put } from "@vercel/blob";
 
-const ALLOWED = new Set([
+export const maxDuration = 60;
+export const runtime = "nodejs";
+
+const ALLOWED = [
   "image/jpeg",
   "image/png",
   "image/webp",
@@ -10,14 +14,24 @@ const ALLOWED = new Set([
   "video/mp4",
   "video/webm",
   "video/quicktime",
-]);
+] as const;
+
+const ALLOWED_SET = new Set<string>(ALLOWED);
 
 function allowedFile(file: File) {
-  if (ALLOWED.has(file.type)) return true;
+  if (ALLOWED_SET.has(file.type)) return true;
   const name = file.name.toLowerCase();
-  return [".mp4", ".webm", ".jpg", ".jpeg", ".png", ".webp", ".gif"].some((ext) =>
-    name.endsWith(ext),
+  return [".mp4", ".webm", ".mov", ".jpg", ".jpeg", ".png", ".webp", ".gif"].some(
+    (ext) => name.endsWith(ext),
   );
+}
+
+function blobEnabled() {
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+}
+
+export async function GET() {
+  return NextResponse.json({ blob: blobEnabled() });
 }
 
 export async function POST(req: Request) {
@@ -34,8 +48,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "File too large (100MB max)." }, { status: 400 });
   }
 
-  const ext = path.extname(file.name) || (file.type.startsWith("video") ? ".mp4" : ".jpg");
-  const safe = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`.replace(/\s+/g, "-");
+  const ext =
+    path.extname(file.name) || (file.type.startsWith("video") ? ".mp4" : ".jpg");
+  const safe = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`.replace(
+    /\s+/g,
+    "-",
+  );
+
+  if (blobEnabled()) {
+    const blob = await put(`uploads/${safe}`, file, {
+      access: "public",
+      addRandomSuffix: false,
+    });
+    return NextResponse.json({ url: blob.url });
+  }
+
   const dir = path.join(process.cwd(), "public", "uploads");
   await mkdir(dir, { recursive: true });
   const buffer = Buffer.from(await file.arrayBuffer());

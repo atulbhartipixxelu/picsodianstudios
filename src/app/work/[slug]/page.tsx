@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { serializeWork } from "@/lib/utils";
 import { PageReveal } from "@/components/ui/PageReveal";
+import { SafeImage } from "@/components/ui/SafeImage";
 import { ScrollWords } from "@/components/ui/ScrollWords";
 
 export const dynamic = "force-dynamic";
@@ -43,7 +44,7 @@ export default async function WorkDetailPage({
     <PageReveal>
       <article className="relative bg-ink text-paper">
         <header className="relative min-h-[80svh] overflow-hidden">
-          <img
+          <SafeImage
             src={parsed.heroImage || parsed.thumbnail}
             alt={parsed.title}
             className="absolute inset-0 h-full w-full object-cover opacity-45"
@@ -139,7 +140,7 @@ export default async function WorkDetailPage({
           <section className="grid gap-4 px-4 pb-20 md:grid-cols-2 md:px-7">
             {parsed.gallery.map((src) => (
               <div key={src} className="overflow-hidden border border-paper/10">
-                <img src={src} alt="" className="w-full object-cover" />
+                <SafeImage src={src} alt="" className="w-full object-cover" />
               </div>
             ))}
           </section>
@@ -151,8 +152,8 @@ export default async function WorkDetailPage({
             data-cursor="Next"
             className="group relative flex min-h-[50vh] items-end overflow-hidden border-t border-line"
           >
-            <img
-              src={next.thumbnail}
+            <SafeImage
+              src={next.thumbnail || next.heroImage}
               alt=""
               className="absolute inset-0 h-full w-full object-cover opacity-30 transition duration-700 group-hover:scale-105 group-hover:opacity-45"
             />

@@ -43,7 +43,7 @@ export function WorkHighlights({ works }: { works: PublicWork[] }) {
     <div ref={ref} className="relative z-20 max-h-[25vh]">
       <motion.div
         style={{ x, y, rotate }}
-        className="flex h-screen origin-[0%_0%] flex-col bg-[#333333f2] px-2 pt-2 text-paper lg:origin-[0%_50%] lg:px-[0.46296vw] lg:pt-[0.46296vw]"
+        className="flex h-screen origin-[0%_0%] flex-col bg-black px-2 pt-2 text-paper lg:origin-[0%_50%] lg:px-[0.46296vw] lg:pt-[0.46296vw]"
       >
         <div className="relative z-10 flex h-full flex-col px-2 pt-24 pb-10 md:px-5">
           <div className="flex items-center gap-3">
@@ -105,10 +105,12 @@ function CaseMedia({ work }: { work: PublicWork }) {
 export function HighlightCase({
   work,
   index,
+  isLast = false,
 }: {
   work: PublicWork;
   index: number;
   total: number;
+  isLast?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -121,20 +123,25 @@ export function HighlightCase({
   const y = useTransform(
     scrollYProgress,
     [0, 0.5, 0.6, 1],
-    ["55vh", "0vh", "10vh", "-30vh"],
+    ["55vh", "0vh", "10vh", isLast ? "-110vh" : "-30vh"],
     { ease },
   );
   const x = useTransform(
     scrollYProgress,
     [0, 0.5, 0.6, 1],
-    ["15vw", "0vw", "0vw", "-15vw"],
+    ["15vw", "0vw", "0vw", isLast ? "-8vw" : "-15vw"],
     { ease },
   );
   const rotate = useTransform(
     scrollYProgress,
     [0, 0.5, 0.6, 1],
-    ["15deg", "0deg", "0deg", "-7deg"],
+    ["15deg", "0deg", "0deg", isLast ? "-2deg" : "-7deg"],
     { ease },
+  );
+  const opacity = useTransform(
+    scrollYProgress,
+    [0, 0.55, 0.82, 1],
+    [1, 1, isLast ? 0.35 : 1, isLast ? 0 : 1],
   );
   const rotateChild = useTransform(
     scrollYProgress,
@@ -158,8 +165,8 @@ export function HighlightCase({
   return (
     <div ref={ref} className="relative z-10 max-h-[50vh]" style={{ zIndex: 10 + index }}>
       <motion.div
-        style={{ x, y, rotate }}
-        className="flex h-screen origin-bottom-right flex-col gap-[0.46296vw] bg-[#3d3d3df2] lg:origin-[0%_25%]"
+        style={{ x, y, rotate, opacity }}
+        className="flex h-screen origin-bottom-right flex-col gap-[0.46296vw] bg-black lg:origin-[0%_25%]"
       >
         <div className="flex max-lg:flex-[0.25] max-lg:pb-5 items-end justify-between px-2 lg:px-[0.46296vw] lg:pt-[2.31481vw] lg:pb-[0.46296vw]">
           <h2 className="display-huge max-w-[60%] text-[34px] leading-[0.8] md:text-[5.5vw]">

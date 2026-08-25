@@ -4,6 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import gsap from "gsap";
 import { PlayPauseControl } from "@/components/ui/PlayPauseControl";
+import {
+  SHOWREEL_EVENT,
+  SHOWREEL_STORAGE_KEY,
+  applyShowreel,
+  type ShowreelPayload,
+} from "@/lib/showreel";
 
 type Props = {
   videoUrl: string;
@@ -38,16 +44,39 @@ export function ShowreelHero({ videoUrl, poster }: Props) {
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/studio", { cache: "no-store" })
-      .then((res) => res.json())
-      .then((data) => {
-        if (cancelled) return;
-        if (data.showreelUrl) setSrc(data.showreelUrl);
-        if (data.showreelPoster) setCover(data.showreelPoster);
-      })
-      .catch(() => {});
+
+    const load = () => {
+      fetch("/api/studio", { cache: "no-store" })
+        .then((res) => res.json())
+        .then((data: ShowreelPayload) => {
+          if (cancelled) return;
+          applyShowreel(data, setSrc, setCover);
+        })
+        .catch(() => {});
+    };
+
+    load();
+
+    const onCustom = (event: Event) => {
+      applyShowreel((event as CustomEvent<ShowreelPayload>).detail, setSrc, setCover);
+    };
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== SHOWREEL_STORAGE_KEY || !event.newValue) return;
+      try {
+        applyShowreel(JSON.parse(event.newValue) as ShowreelPayload, setSrc, setCover);
+      } catch {
+        load();
+      }
+    };
+
+    window.addEventListener(SHOWREEL_EVENT, onCustom);
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("focus", load);
     return () => {
       cancelled = true;
+      window.removeEventListener(SHOWREEL_EVENT, onCustom);
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("focus", load);
     };
   }, []);
 

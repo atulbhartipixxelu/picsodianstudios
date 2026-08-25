@@ -1,88 +1,66 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { cubicBezier, motion, useScroll, useTransform } from "framer-motion";
+import Link from "next/link";
+import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { SafeImage } from "@/components/ui/SafeImage";
 
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger, useGSAP);
 
-const ease = cubicBezier(0, 0, 0, 0);
+const CRAFT = ["2D", "Motion", "Film"];
 
-const LINES = [
-  "We are a passion-driven",
-  "creative studio built around",
-  "ideas, motion, and people",
-  "who truly care.",
-];
+type Props = {
+  still?: string;
+};
 
-const CHIPS = ["2D", "Motion", "Film", "Character", "24 fps"];
-
-/** TheStudio — slides up after project stack (outside gap container) */
-export function Manifesto() {
-  const ref = useRef<HTMLDivElement>(null);
-  const heading = useRef<HTMLHeadingElement>(null);
-
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["50vh end", "100vh end"],
-  });
-
-  const y = useTransform(scrollYProgress, [0, 1], ["50vh", "0vh"], { ease });
-  const rotate = useTransform(scrollYProgress, [0, 0.3], ["7deg", "0deg"], { ease });
-  const x = useTransform(scrollYProgress, [0, 0.3], ["-10%", "0%"], { ease });
-
-  useEffect(() => {
-    const title = heading.current;
-    if (!title) return;
-    const lines = title.querySelectorAll<HTMLElement>(".heading-line");
-    const ctx = gsap.context(() => {
-      gsap.set(lines, { opacity: 0.16, color: "#9c9a9a" });
-      gsap.to(lines, {
-        opacity: 1,
-        color: "#f2f0f0",
-        stagger: 0.18,
-        ease: "none",
-        scrollTrigger: {
-          trigger: title,
-          start: "top 78%",
-          end: "top 30%",
-          scrub: 0.55,
-          invalidateOnRefresh: true,
-        },
-      });
-    }, title);
-    return () => ctx.revert();
-  }, []);
-
-  return (
-    <div ref={ref} className="relative z-40 max-h-[50vh]">
-      <motion.div
-        style={{ x, y, rotate }}
-        className="flex min-h-screen origin-[0%_0%] flex-col justify-center overflow-hidden bg-[#333333f2] px-4 py-28 text-paper lg:origin-[0%_50%] md:px-7"
-      >
-        <p className="micro mb-8 text-signal">Who we are / 01</p>
-        <h2
-          ref={heading}
-          className="display-huge max-w-[16ch] text-[11.5vw] md:text-[7vw] lg:text-[6.2vw]"
-        >
-          {LINES.map((line) => (
-            <span key={line} className="heading-line">
-              {line}
-            </span>
-          ))}
-        </h2>
-      </motion.div>
-    </div>
-  );
-}
-
-export function StudioGate({ still }: { still?: string }) {
-  const gate = useRef<HTMLElement>(null);
+export function Manifesto({ still }: Props) {
+  const root = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const img = useRef<HTMLImageElement>(null);
   const scan = useRef<HTMLDivElement>(null);
   const [time, setTime] = useState("00:00:00:00");
+  const [tick, setTick] = useState("00");
+
+  useGSAP(
+    () => {
+      const el = root.current;
+      if (!el) return;
+      gsap.from(el.querySelectorAll("[data-in]"), {
+        y: 28,
+        opacity: 0,
+        duration: 0.85,
+        stagger: 0.08,
+        ease: "power3.out",
+        scrollTrigger: { trigger: el, start: "top 76%", once: true },
+      });
+      gsap.from(el.querySelectorAll("[data-meter]"), {
+        y: 36,
+        opacity: 0,
+        duration: 0.7,
+        stagger: 0.12,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: el.querySelector(".studio-meter"),
+          start: "top 88%",
+          once: true,
+        },
+      });
+      gsap.from(el.querySelectorAll("[data-meter-val]"), {
+        yPercent: 110,
+        duration: 0.85,
+        stagger: 0.12,
+        ease: "power4.out",
+        scrollTrigger: {
+          trigger: el.querySelector(".studio-meter"),
+          start: "top 88%",
+          once: true,
+        },
+      });
+    },
+    { scope: root },
+  );
 
   useEffect(() => {
     let frame = 0;
@@ -92,58 +70,36 @@ export function StudioGate({ still }: { still?: string }) {
       const m = String(Math.floor(total / 60)).padStart(2, "0");
       const s = String(total % 60).padStart(2, "0");
       setTime(`01:${m}:${s}:${String(frame).padStart(2, "0")}`);
+      setTick(String(frame).padStart(2, "0"));
     }, 1000 / 24);
     return () => clearInterval(id);
   }, []);
 
   useEffect(() => {
-    const root = gate.current;
-    if (!root) return;
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        root.querySelector("[data-iris]"),
-        { clipPath: "circle(0% at 50% 50%)" },
-        {
-          clipPath: "circle(75% at 50% 50%)",
-          ease: "power2.inOut",
-          scrollTrigger: {
-            trigger: root,
-            start: "top 80%",
-            end: "top 35%",
-            scrub: 0.9,
-            invalidateOnRefresh: true,
-          },
-        },
-      );
-    }, root);
-    return () => ctx.revert();
-  }, []);
-
-  useEffect(() => {
-    const root = gate.current;
+    const wrap = root.current;
     const card = stage.current;
     const photo = img.current;
-    if (!root || !card) return;
+    if (!wrap || !card) return;
 
     const onMove = (e: MouseEvent) => {
-      const r = root.getBoundingClientRect();
+      const r = card.getBoundingClientRect();
       const mx = (e.clientX - r.left) / r.width - 0.5;
       const my = (e.clientY - r.top) / r.height - 0.5;
-      card.style.transform = `perspective(1000px) rotateY(${mx * 12}deg) rotateX(${-my * 8}deg)`;
+      card.style.transform = `perspective(1100px) rotateY(${mx * 6}deg) rotateX(${-my * 5}deg)`;
       if (photo) {
-        photo.style.transform = `scale(1.12) translate(${mx * -18}px, ${my * -12}px)`;
+        photo.style.transform = `scale(1.08) translate(${mx * -10}px, ${my * -8}px)`;
       }
     };
     const onLeave = () => {
-      card.style.transform = "perspective(1000px) rotateY(0) rotateX(0)";
-      if (photo) photo.style.transform = "scale(1.08) translate(0,0)";
+      card.style.transform = "perspective(1100px) rotateY(0) rotateX(0)";
+      if (photo) photo.style.transform = "scale(1.04) translate(0,0)";
     };
 
-    root.addEventListener("mousemove", onMove);
-    root.addEventListener("mouseleave", onLeave);
+    wrap.addEventListener("mousemove", onMove);
+    wrap.addEventListener("mouseleave", onLeave);
     return () => {
-      root.removeEventListener("mousemove", onMove);
-      root.removeEventListener("mouseleave", onLeave);
+      wrap.removeEventListener("mousemove", onMove);
+      wrap.removeEventListener("mouseleave", onLeave);
     };
   }, []);
 
@@ -161,89 +117,136 @@ export function StudioGate({ still }: { still?: string }) {
   }, []);
 
   return (
-    <section ref={gate} className="relative bg-ink px-4 py-20 text-paper md:px-7 md:py-28">
-      <div className="relative grid w-full items-center gap-16 lg:grid-cols-12">
-        <div className="lg:col-span-6">
-          <p className="micro mb-6 text-signal">The lowdown</p>
-          <p className="max-w-xl text-lg leading-relaxed text-paper/70">
-            Storytelling is more than frames and effects. We blast the screen with
-            energy, emotion, and imagination — work that doesn&apos;t just look good,
-            it stays with you.
-          </p>
-          <div className="mt-10 grid max-w-md grid-cols-3 gap-3 text-center">
-            {[
-              ["24", "fps"],
-              ["∞", "frames"],
-              ["01", "vision"],
-            ].map(([n, l]) => (
-              <div key={l} className="border border-line px-2 py-4">
-                <span className="font-display block text-3xl text-signal">{n}</span>
-                <span className="micro mt-1 block text-mist">{l}</span>
-              </div>
-            ))}
-          </div>
+    <section
+      ref={root}
+      className="studio-block relative z-10 overflow-hidden bg-ink text-paper"
+    >
+      <span className="studio-watermark" aria-hidden>
+        Stays
+      </span>
+
+      <div className="relative mx-auto max-w-6xl px-4 pt-20 md:px-7 md:pt-28">
+        <div className="studio-top" data-in>
+          <p className="micro text-paper/80">03 / Who we are</p>
+          <p className="micro hidden text-paper/55 sm:block">Picsodian Studios</p>
         </div>
 
-        <div className="relative lg:col-span-6">
-          <div className="relative mx-auto aspect-square max-w-[460px]" data-iris>
-            <div className="manifesto-ring absolute inset-0" />
+        <div className="studio-grid">
+          <div>
+            <h2 data-in className="studio-title">
+              <span>Work that</span>
+              <span>stays with</span>
+              <span>you.</span>
+            </h2>
 
+            <p data-in className="studio-lede">
+              We are a passion-driven studio built around ideas, motion, and
+              people who care. Storytelling is more than frames and effects — it
+              should hit with energy, then linger.
+            </p>
+
+            <Link
+              data-in
+              href="/about"
+              className="studio-cta"
+              data-cursor="About"
+            >
+              Read the full story
+              <span aria-hidden>→</span>
+            </Link>
+          </div>
+
+          <div data-in>
             <div
               ref={stage}
-              className="absolute inset-[13%] overflow-hidden border border-signal/50 bg-ink-2 transition-transform duration-200 ease-out"
+              className="studio-gate transition-transform duration-200 ease-out"
               style={{ transformStyle: "preserve-3d" }}
             >
-              <span className="finder finder-tl" />
-              <span className="finder finder-tr" />
-              <span className="finder finder-bl" />
-              <span className="finder finder-br" />
+              <div className="studio-gate-photo">
+                <span className="finder finder-tl" />
+                <span className="finder finder-tr" />
+                <span className="finder finder-bl" />
+                <span className="finder finder-br" />
 
-              {still ? (
-                <img
-                  ref={img}
-                  src={still}
-                  alt=""
-                  className="manifesto-ken h-full w-full object-cover opacity-85"
+                {still ? (
+                  <SafeImage
+                    ref={img}
+                    src={still}
+                    alt="On set at Picsodian Studios"
+                    className="manifesto-ken h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="grid h-full place-items-center bg-ink">
+                    <SafeImage src="/logo-white.png" alt="" className="w-1/2 opacity-80" />
+                  </div>
+                )}
+
+                <div
+                  ref={scan}
+                  className="pointer-events-none absolute right-0 left-0 h-16 bg-gradient-to-b from-transparent via-paper/30 to-transparent"
                 />
-              ) : (
-                <div className="grid h-full place-items-center bg-ink-2">
-                  <img src="/logo.png" alt="" className="w-2/3" />
-                </div>
-              )}
+              </div>
 
-              <div
-                ref={scan}
-                className="pointer-events-none absolute right-0 left-0 h-16 bg-gradient-to-b from-transparent via-signal/35 to-transparent"
-              />
-              <div className="pointer-events-none absolute inset-0 manifesto-grain" />
-
-              <div className="absolute top-3 right-3 left-3 z-20 flex items-center justify-between">
-                <p className="micro text-signal">{time}</p>
-                <p className="micro flex items-center gap-2 text-signal">
-                  <span className="h-2 w-2 animate-pulse rounded-full bg-signal" />
+              <div className="studio-hud">
+                <p className="micro text-paper">{time}</p>
+                <p className="micro flex items-center gap-2 text-paper">
+                  <span className="h-1.5 w-1.5 rounded-full bg-paper" />
                   Rec
                 </p>
               </div>
-              <p className="micro absolute bottom-3 left-3 z-20 text-signal/80">
-                Studio / Gate
-              </p>
             </div>
 
-            {CHIPS.map((chip, i) => (
-              <span
-                key={chip}
-                className="absolute border border-signal/40 bg-ink/85 px-3 py-1 micro text-signal backdrop-blur-sm"
-                style={{
-                  top: `${14 + i * 15}%`,
-                  [i % 2 === 0 ? "left" : "right"]: "-2%",
-                }}
-              >
-                {chip}
-              </span>
-            ))}
+            <ul className="studio-crafts">
+              {CRAFT.map((chip) => (
+                <li key={chip}>{chip}</li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>
+
+      <div className="studio-meter">
+        <span className="studio-meter-rail" aria-hidden />
+        <span className="studio-meter-playhead" aria-hidden />
+        <dl className="studio-meter-grid">
+          <div data-meter className="studio-meter-cell">
+            <span className="studio-meter-no">01</span>
+            <dt>Frame rate</dt>
+            <dd>
+              <span className="studio-meter-clip">
+                <span data-meter-val>24 fps</span>
+              </span>
+              <span className="studio-meter-live">{tick}</span>
+            </dd>
+          </div>
+          <div data-meter className="studio-meter-cell">
+            <span className="studio-meter-no">02</span>
+            <dt>Canvas</dt>
+            <dd>
+              <span className="studio-meter-clip">
+                <span data-meter-val>
+                  <span className="studio-meter-infinity">∞</span> frames
+                </span>
+              </span>
+            </dd>
+          </div>
+          <div data-meter className="studio-meter-cell">
+            <span className="studio-meter-no">03</span>
+            <dt>Focus</dt>
+            <dd>
+              <span className="studio-meter-clip">
+                <span data-meter-val>01 vision</span>
+              </span>
+              <span className="studio-meter-cursor" aria-hidden />
+            </dd>
+          </div>
+        </dl>
+        <span className="studio-meter-rail" aria-hidden />
+      </div>
     </section>
   );
+}
+
+export function StudioGate({ still }: { still?: string }) {
+  return <Manifesto still={still} />;
 }

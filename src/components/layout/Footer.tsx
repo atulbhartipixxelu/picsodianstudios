@@ -54,7 +54,7 @@ export function Footer() {
   }, []);
 
   return (
-    <footer ref={root} className="relative z-50 overflow-x-clip overflow-y-visible bg-[#f44] text-ink">
+    <footer ref={root} className="relative z-50 overflow-x-clip overflow-y-visible bg-paper text-ink">
       <div className="px-4 pt-16 pb-6 md:px-7 md:pt-24">
         <div className="mb-8 flex items-center justify-between gap-4">
           <p className="micro">Next / Make something that stays</p>
@@ -71,7 +71,7 @@ export function Footer() {
               <span className="block overflow-x-visible overflow-y-hidden pb-[0.08em] pr-[0.2em]">
                 <span
                   data-foot
-                  className="block text-[clamp(1.6rem,4.4vw,3.4rem)] tracking-[-0.05em]"
+                  className="block text-[clamp(1.6rem,4.4vw,3.4rem)] tracking-[1.5px]"
                 >
                   Let&apos;s make it
                 </span>
@@ -79,7 +79,7 @@ export function Footer() {
               <span className="block overflow-x-visible overflow-y-hidden pb-[0.12em] pr-[0.28em]">
                 <span
                   data-foot
-                  className="foot-stroke block whitespace-nowrap text-[clamp(2.1rem,7.4vw,7rem)] leading-[0.95] tracking-[-0.04em]"
+                  className="foot-stroke block whitespace-nowrap text-[clamp(2.1rem,7.4vw,7rem)] leading-[0.95] tracking-[1.5px]"
                 >
                   undeniably
                 </span>
@@ -87,7 +87,7 @@ export function Footer() {
               <span className="block overflow-x-visible overflow-y-hidden pb-[0.08em] pr-[0.2em]">
                 <span
                   data-foot
-                  className="relative block text-[clamp(2.3rem,8vw,7.6rem)] leading-[0.9] tracking-[-0.06em]"
+                  className="relative block text-[clamp(2.3rem,8vw,7.6rem)] leading-[0.9] tracking-[1.5px]"
                 >
                   cool
                   <span className="inline-block origin-center transition-transform duration-500 group-hover:translate-x-3">
@@ -124,10 +124,10 @@ export function Footer() {
             <Link
               href="/contact"
               data-cursor="Go"
-              className="relative z-10 grid h-36 w-36 place-items-center rounded-full bg-ink text-[#f44] shadow-[0_20px_50px_rgba(0,0,0,0.25)] transition-transform duration-500 hover:scale-110 sm:h-44 sm:w-44"
+              className="relative z-10 grid h-36 w-36 place-items-center rounded-full bg-ink text-paper shadow-[0_20px_50px_rgba(51,51,51,0.25)] transition-transform duration-500 hover:scale-110 sm:h-44 sm:w-44"
             >
               <span className="text-center">
-                <span className="font-display block text-2xl tracking-tight uppercase sm:text-3xl">
+                <span className="font-display block text-2xl tracking-[1.5px] uppercase sm:text-3xl">
                   Go
                 </span>
                 <span className="micro mt-1 block">Enquire now</span>
