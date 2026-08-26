@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { playCountSound, unlockLoaderAudio } from "@/lib/loaderSound";
-import { embedVideoSrc, FALLBACK_SHOWREEL } from "@/lib/video";
+import { FALLBACK_SHOWREEL } from "@/lib/video";
 
 type Props = {
   onComplete: () => void;
@@ -11,16 +11,13 @@ type Props = {
 
 const ORBIT_COPY = "PICSODIAN STUDIOS  ·  24 FPS  ·  GATE  ·  SILENCE ON SET  ·  ";
 const SMOOTH: [number, number, number, number] = [0.22, 1, 0.36, 1];
+const BEAT = 900;
 
 export function Preloader({ onComplete }: Props) {
   const [visible, setVisible] = useState(true);
-  const [started, setStarted] = useState(false);
+  const [armed, setArmed] = useState(false);
   const [count, setCount] = useState(3);
   const [tc, setTc] = useState("00:00:00:00");
-  const [media, setMedia] = useState({
-    url: FALLBACK_SHOWREEL,
-    poster: "",
-  });
   const done = useRef(false);
   const revealed = useRef(false);
 
@@ -38,61 +35,76 @@ export function Preloader({ onComplete }: Props) {
     onComplete();
   }
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     document.documentElement.classList.add("is-booting");
     document.body.style.overflow = "hidden";
+    void document.fonts.load('80px "BrunsonRough"');
+    void document.fonts.load('16px "BrunsonRegular"');
+  }, []);
 
-    fetch("/api/studio", { cache: "no-store" })
-      .then((res) => res.json())
-      .then((data: { showreelUrl?: string; showreelPoster?: string }) => {
-        if (data.showreelUrl) {
-          setMedia({
-            url: data.showreelUrl,
-            poster: data.showreelPoster ?? "",
-          });
-        }
-      })
-      .catch(() => {});
+  useEffect(() => {
+    let cancelled = false;
+    let timers: number[] = [];
+    let raf = 0;
 
-    const hold = 1000;
-    const timers = [
-      window.setTimeout(() => setStarted(true), hold),
-      window.setTimeout(() => setCount(2), hold + 1100),
-      window.setTimeout(() => setCount(1), hold + 2200),
-      window.setTimeout(() => setCount(0), hold + 3300),
-      window.setTimeout(revealSite, hold + 3900),
-      window.setTimeout(() => setVisible(false), hold + 4300),
-    ];
+    const arm = () => {
+      if (cancelled) return;
+      setArmed(true);
+    };
 
-    let frames = 0;
-    const clock = window.setInterval(() => {
-      frames += 1;
+    const fontReady = document.fonts.check('80px "BrunsonRough"')
+      ? Promise.resolve()
+      : document.fonts.load('80px "BrunsonRough"');
+
+    const wait = Promise.race([
+      fontReady,
+      new Promise<void>((resolve) => window.setTimeout(resolve, 700)),
+    ]);
+
+    wait.then(() => {
+      if (cancelled) return;
+      arm();
+      timers = [
+        window.setTimeout(() => setCount(2), BEAT),
+        window.setTimeout(() => setCount(1), BEAT * 2),
+        window.setTimeout(() => setCount(0), BEAT * 3),
+        window.setTimeout(revealSite, BEAT * 3 + 520),
+        window.setTimeout(() => setVisible(false), BEAT * 3 + 880),
+      ];
+    });
+
+    const origin = performance.now();
+    const tick = (now: number) => {
+      const frames = Math.floor(((now - origin) / 1000) * 24);
       const ff = frames % 24;
       const ss = Math.floor(frames / 24) % 60;
       const mm = Math.floor(frames / 24 / 60) % 60;
       const hh = Math.floor(frames / 24 / 60 / 60);
       const pad = (n: number) => String(n).padStart(2, "0");
       setTc(`${pad(hh)}:${pad(mm)}:${pad(ss)}:${pad(ff)}`);
-    }, 1000 / 24);
+      raf = window.requestAnimationFrame(tick);
+    };
+    raf = window.requestAnimationFrame(tick);
 
     const unlock = () => unlockLoaderAudio();
-    window.addEventListener("pointerdown", unlock);
-    window.addEventListener("keydown", unlock);
+    window.addEventListener("pointerdown", unlock, { once: true });
+    window.addEventListener("keydown", unlock, { once: true });
 
     return () => {
+      cancelled = true;
       timers.forEach(clearTimeout);
-      clearInterval(clock);
+      window.cancelAnimationFrame(raf);
       window.removeEventListener("pointerdown", unlock);
       window.removeEventListener("keydown", unlock);
     };
   }, []);
 
   useEffect(() => {
-    if (!started) return;
+    if (!armed) return;
     playCountSound(count === 0 ? "go" : "tick");
-  }, [count, started]);
+  }, [count, armed]);
 
-  const label = !started ? null : count === 0 ? "GO" : String(count);
+  const label = count === 0 ? "GO" : String(count);
 
   return (
     <AnimatePresence onExitComplete={finish}>
@@ -103,55 +115,41 @@ export function Preloader({ onComplete }: Props) {
           initial={{ y: 0, opacity: 1 }}
           exit={{
             y: "-100%",
-            transition: { duration: 1.15, ease: [0.76, 0, 0.24, 1] },
+            transition: { duration: 0.85, ease: [0.76, 0, 0.24, 1] },
           }}
         >
-          <LoaderVideo src={media.url} poster={media.poster} />
-          <LoaderBackdrop count={started ? count : -1} timecode={tc} />
+          <LoaderVideo />
+          <LoaderBackdrop count={count} timecode={tc} />
 
           <div className="relative z-20 flex flex-col items-center gap-6">
-            <motion.p
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: SMOOTH }}
-              className="micro text-mist"
-            >
-              Picsodian / Gate
-            </motion.p>
+            <p className="micro text-mist">Picsodian / Gate</p>
 
             <div className="relative grid h-[22vw] w-[min(72vw,22rem)] place-items-center md:h-48">
-              <AnimatePresence>
-                {label ? (
-                  <motion.p
-                    key={label}
-                    initial={{ opacity: 0, y: 36, filter: "blur(10px)", scale: 0.96 }}
-                    animate={{ opacity: 1, y: 0, filter: "blur(0px)", scale: 1 }}
-                    exit={{ opacity: 0, y: -32, filter: "blur(10px)", scale: 1.04 }}
-                    transition={{ duration: 0.75, ease: SMOOTH }}
-                    className="loader-num display-huge absolute inset-0 grid place-items-center text-[22vw] text-signal md:text-[12rem]"
-                  >
-                    {label}
-                  </motion.p>
+              <span
+                aria-hidden
+                className="pointer-events-none absolute h-0 w-0 overflow-hidden font-display"
+              >
+                321GO
+              </span>
+              <AnimatePresence initial={false}>
+                {armed ? (
+                <motion.p
+                  key={label}
+                  initial={{ opacity: 0, y: 28, filter: "blur(8px)", scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, filter: "blur(0px)", scale: 1 }}
+                  exit={{ opacity: 0, y: -26, filter: "blur(8px)", scale: 1.03 }}
+                  transition={{ duration: 0.42, ease: SMOOTH }}
+                  className="loader-num display-huge absolute inset-0 grid place-items-center text-[22vw] text-signal md:text-[12rem]"
+                >
+                  {label}
+                </motion.p>
                 ) : null}
               </AnimatePresence>
             </div>
 
-            <AnimatePresence mode="wait">
-              <motion.p
-                key={!started ? "hold" : count === 0 ? "action" : "count"}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.45, ease: SMOOTH }}
-                className="micro text-paper/70"
-              >
-                {!started
-                  ? "Stand by"
-                  : count === 0
-                    ? "Action"
-                    : "24 fps · silence on set"}
-              </motion.p>
-            </AnimatePresence>
+            <p className="micro text-paper/70">
+              {count === 0 ? "Action" : "24 fps · silence on set"}
+            </p>
           </div>
         </motion.div>
       ) : null}
@@ -159,67 +157,51 @@ export function Preloader({ onComplete }: Props) {
   );
 }
 
-function LoaderVideo({ src, poster }: { src: string; poster: string }) {
+function LoaderVideo() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [live, setLive] = useState(false);
-  const embed = embedVideoSrc(src);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    let cancelled = false;
+    video.muted = true;
+    video.defaultMuted = true;
+    video.playsInline = true;
+    video.preload = "auto";
+
+    const mark = () => setLive(true);
     const kick = () => {
-      if (cancelled) return;
-      video.muted = true;
-      video.defaultMuted = true;
-      video.playsInline = true;
       const play = video.play();
-      if (play) play.then(() => setLive(true)).catch(() => {});
+      if (play) play.then(mark).catch(() => {});
     };
 
-    const onReady = () => {
-      setLive(true);
-      kick();
-    };
-
-    video.addEventListener("canplay", onReady);
-    video.addEventListener("playing", onReady);
+    video.addEventListener("loadeddata", mark);
+    video.addEventListener("canplay", kick);
+    video.addEventListener("playing", mark);
     kick();
 
     return () => {
-      cancelled = true;
-      video.removeEventListener("canplay", onReady);
-      video.removeEventListener("playing", onReady);
+      video.removeEventListener("loadeddata", mark);
+      video.removeEventListener("canplay", kick);
+      video.removeEventListener("playing", mark);
       video.pause();
     };
-  }, [src]);
+  }, []);
 
   return (
     <div className="absolute inset-0 z-0 overflow-hidden" aria-hidden>
-      {embed ? (
-        <iframe
-          key={src}
-          src={embed}
-          title="Loader showreel"
-          className="loader-video pointer-events-none absolute inset-0 h-full w-full scale-110 border-0"
-          allow="autoplay; muted"
-        />
-      ) : (
-        <video
-          key={src}
-          ref={videoRef}
-          className="loader-video"
-          src={src}
-          poster={poster || undefined}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          data-ready={live ? "1" : "0"}
-        />
-      )}
+      <video
+        ref={videoRef}
+        className="loader-video"
+        src={`${FALLBACK_SHOWREEL}#t=0.001`}
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        data-ready={live ? "1" : "0"}
+      />
       <div className="loader-video-veil" />
     </div>
   );
@@ -249,7 +231,7 @@ function LoaderBackdrop({ count, timecode }: { count: number; timecode: string }
         className="loader-leader"
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.28 }}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       />
 
       <svg className="loader-orbit" viewBox="0 0 400 400">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { embedVideoSrc, FALLBACK_SHOWREEL, isDirectVideo } from "@/lib/video";
 
 type Props = {
@@ -19,6 +19,7 @@ export function LineScrollStage({
   poster = "",
 }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [booting, setBooting] = useState(true);
   const embed = videoUrl ? embedVideoSrc(videoUrl) : null;
   const src =
     embed
@@ -28,11 +29,29 @@ export function LineScrollStage({
         : FALLBACK_SHOWREEL;
 
   useEffect(() => {
+    if (!document.documentElement.classList.contains("is-booting")) {
+      setBooting(false);
+      return;
+    }
+    const obs = new MutationObserver(() => {
+      if (!document.documentElement.classList.contains("is-booting")) {
+        setBooting(false);
+        obs.disconnect();
+      }
+    });
+    obs.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => obs.disconnect();
+  }, []);
+
+  useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || booting) return;
     video.muted = true;
     video.play().catch(() => {});
-  }, [src]);
+  }, [src, booting]);
 
   return (
     <div className="relative z-0 isolate max-w-[100vw]">
@@ -50,10 +69,11 @@ export function LineScrollStage({
             src={src ?? FALLBACK_SHOWREEL}
             poster={poster || undefined}
             className="absolute inset-0 h-full w-full object-cover"
-            autoPlay
+            autoPlay={!booting}
             muted
             loop
             playsInline
+            preload={booting ? "none" : "metadata"}
           />
         )}
         <div className="absolute inset-0 bg-ink/45" />

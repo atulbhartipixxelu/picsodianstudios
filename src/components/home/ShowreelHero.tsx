@@ -36,6 +36,30 @@ export function ShowreelHero({ videoUrl, poster }: Props) {
   const [playing, setPlaying] = useState(true);
   const [src, setSrc] = useState(videoUrl);
   const [cover, setCover] = useState(poster);
+  const [booting, setBooting] = useState(true);
+
+  useEffect(() => {
+    setSrc(videoUrl);
+    setCover(poster);
+  }, [videoUrl, poster]);
+
+  useEffect(() => {
+    if (!document.documentElement.classList.contains("is-booting")) {
+      setBooting(false);
+      return;
+    }
+    const obs = new MutationObserver(() => {
+      if (!document.documentElement.classList.contains("is-booting")) {
+        setBooting(false);
+        obs.disconnect();
+      }
+    });
+    obs.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => obs.disconnect();
+  }, []);
 
   useEffect(() => {
     setSrc(videoUrl);
@@ -82,10 +106,10 @@ export function ShowreelHero({ videoUrl, poster }: Props) {
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || booting) return;
     video.load();
     video.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
-  }, [src]);
+  }, [src, booting]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -185,10 +209,11 @@ export function ShowreelHero({ videoUrl, poster }: Props) {
           style={{ transform: "translate3d(var(--mx, 0), var(--my, 0), 0) scale(1.12)" }}
           src={src}
           poster={cover}
-          autoPlay
+          autoPlay={!booting}
           muted
           loop
           playsInline
+          preload={booting ? "none" : "auto"}
         />
       )}
 

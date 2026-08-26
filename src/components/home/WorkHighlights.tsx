@@ -154,7 +154,7 @@ export function HighlightCase({
       ScrollTrigger.create({
         trigger: el,
         start: "top top",
-        end: "+=120%",
+        end: "+=80%",
         pin: true,
         anticipatePin: 1,
         invalidateOnRefresh: true,

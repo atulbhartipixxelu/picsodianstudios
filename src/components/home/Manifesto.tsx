@@ -121,7 +121,17 @@ export function Manifesto({ still }: Props) {
       ref={root}
       className="studio-block relative z-10 overflow-hidden bg-ink text-paper"
     >
-      <div className="studio-grid-bg" aria-hidden />
+      <div className="studio-fx" aria-hidden>
+        <div className="studio-fx-wash" />
+        <span className="studio-fx-iris" />
+        <span className="studio-fx-iris studio-fx-iris-2" />
+        <span className="studio-fx-iris studio-fx-iris-3" />
+        <div className="studio-fx-sweep" />
+        <span className="studio-fx-mote" />
+        <span className="studio-fx-mote studio-fx-mote-2" />
+        <span className="studio-fx-mote studio-fx-mote-3" />
+        <span className="studio-fx-mote studio-fx-mote-4" />
+      </div>
       <span className="studio-watermark" aria-hidden>
         Stays
       </span>

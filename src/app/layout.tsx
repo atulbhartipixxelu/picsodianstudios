@@ -33,6 +33,20 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistMono.variable} h-full`}
     >
       <body className="min-h-full bg-ink text-paper">
+        <link
+          rel="preload"
+          href="/fonts/BrunsonRough.ttf"
+          as="font"
+          type="font/ttf"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preload"
+          href="/fonts/Brunson.ttf"
+          as="font"
+          type="font/ttf"
+          crossOrigin="anonymous"
+        />
         <SiteChrome>{children}</SiteChrome>
       </body>
     </html>

@@ -54,7 +54,11 @@ export function Footer() {
   }, []);
 
   return (
-    <footer ref={root} className="relative z-50 overflow-x-clip overflow-y-visible bg-paper text-ink">
+    <footer
+      ref={root}
+      data-cursor-surface="paper"
+      className="relative z-50 overflow-x-clip overflow-y-visible bg-paper text-ink"
+    >
       <div className="px-4 pt-16 pb-6 md:px-7 md:pt-24">
         <div className="mb-8 flex items-center justify-between gap-4">
           <p className="micro">Next / Make something that stays</p>
@@ -67,11 +71,11 @@ export function Footer() {
             data-cursor="Enquire"
             className="group lg:col-span-8"
           >
-            <h2 className="display-huge">
+            <h2 className="display-huge foot-cta">
               <span className="block overflow-x-visible overflow-y-hidden pb-[0.08em] pr-[0.2em]">
                 <span
                   data-foot
-                  className="block text-[clamp(1.6rem,4.4vw,3.4rem)] tracking-[1.5px]"
+                  className="block text-[clamp(1.6rem,4.4vw,3.4rem)]"
                 >
                   Let&apos;s make it
                 </span>
@@ -79,7 +83,7 @@ export function Footer() {
               <span className="block overflow-x-visible overflow-y-hidden pb-[0.12em] pr-[0.28em]">
                 <span
                   data-foot
-                  className="foot-stroke block whitespace-nowrap text-[clamp(2.1rem,7.4vw,7rem)] leading-[0.95] tracking-[1.5px]"
+                  className="foot-stroke block whitespace-nowrap text-[clamp(2.1rem,7.4vw,7rem)] leading-[0.95]"
                 >
                   undeniably
                 </span>
@@ -87,7 +91,7 @@ export function Footer() {
               <span className="block overflow-x-visible overflow-y-hidden pb-[0.08em] pr-[0.2em]">
                 <span
                   data-foot
-                  className="relative block text-[clamp(2.3rem,8vw,7.6rem)] leading-[0.9] tracking-[1.5px]"
+                  className="relative block text-[clamp(2.3rem,8vw,7.6rem)] leading-[0.9]"
                 >
                   cool
                   <span className="inline-block origin-center transition-transform duration-500 group-hover:translate-x-3">
@@ -103,8 +107,7 @@ export function Footer() {
           </Link>
 
           <div className="relative mx-auto grid h-64 w-64 place-items-center sm:h-80 sm:w-80 lg:col-span-4 lg:h-[22rem] lg:w-[22rem]">
-            <span className="absolute inset-6 rounded-full border border-ink/20" />
-            <span className="absolute inset-12 rounded-full border border-dashed border-ink/30 animate-[ps-orbit_10s_linear_infinite]" />
+            <span className="absolute inset-12 rounded-full border border-dashed border-ink/25" />
             <svg
               viewBox="0 0 320 320"
               className="absolute inset-0 h-full w-full animate-[ps-orbit_20s_linear_infinite]"
@@ -115,7 +118,23 @@ export function Footer() {
                   d="M 160,160 m -132,0 a 132,132 0 1,1 264,0 a 132,132 0 1,1 -264,0"
                 />
               </defs>
-              <text fill="#333333" fontSize="12" letterSpacing="6">
+              <circle
+                cx="160"
+                cy="160"
+                r="132"
+                fill="none"
+                stroke="rgba(51,51,51,0.2)"
+                strokeWidth="1"
+              />
+              <text
+                fill="#333333"
+                stroke="#F2F0F0"
+                strokeWidth="9"
+                strokeLinejoin="round"
+                paintOrder="stroke fill"
+                fontSize="12"
+                letterSpacing="6"
+              >
                 <textPath href="#footer-orbit">
                   START A PROJECT — ENQUIRE NOW — PICSODIAN STUDIOS —
                 </textPath>

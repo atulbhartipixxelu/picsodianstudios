@@ -84,6 +84,10 @@ export function CustomCursor() {
       my = e.clientY;
 
       const node = e.target as HTMLElement | null;
+      rootEl.dataset.surface = node?.closest('[data-cursor-surface="paper"]')
+        ? "paper"
+        : "ink";
+
       if (node?.closest(TEXT_SEL)) {
         magnet = null;
         rootEl.dataset.state = "text";
