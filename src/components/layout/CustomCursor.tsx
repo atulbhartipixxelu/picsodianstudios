@@ -91,10 +91,16 @@ export function CustomCursor() {
       if (hover) {
         const noMagnet = hover.hasAttribute("data-no-magnet");
         const rect = hover.getBoundingClientRect();
-        const area = rect.width * rect.height;
-        const tooLarge = area > MAX_MAGNET_AREA;
+        const tooLarge = rect.width * rect.height > MAX_MAGNET_AREA;
 
-        magnet = noMagnet || tooLarge ? null : rect;
+        if (tooLarge) {
+          magnet = null;
+          rootEl.dataset.state = "default";
+          labelEl.textContent = "";
+          return;
+        }
+
+        magnet = noMagnet ? null : rect;
         labelEl.textContent = hover.getAttribute("data-cursor") || "Open";
         rootEl.dataset.state = "hover";
         return;
