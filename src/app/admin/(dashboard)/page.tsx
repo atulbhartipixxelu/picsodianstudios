@@ -4,10 +4,14 @@ import { Clapperboard, Inbox, Plus, Sparkles } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { DashboardCharts } from "@/components/admin/DashboardCharts";
 import { BannerVideoManager } from "@/components/admin/BannerVideoManager";
+import { SelectedWorkPicker } from "@/components/admin/SelectedWorkPicker";
+import { AdminHeader } from "@/components/admin/AdminHeader";
 import { SafeImage } from "@/components/ui/SafeImage";
+import { listPublishedWorkPicks } from "@/lib/exclusiveSelect";
 
 export default async function AdminHomePage() {
-  const [works, enquiries, unread, recentWorks, allWorks, settings] = await Promise.all([
+  const [works, enquiries, unread, recentWorks, allWorks, pickWorks, settings] =
+    await Promise.all([
     prisma.work.count(),
     prisma.enquiry.count(),
     prisma.enquiry.count({ where: { status: "new" } }),
@@ -18,6 +22,7 @@ export default async function AdminHomePage() {
     prisma.work.findMany({
       select: { category: true, year: true },
     }),
+    listPublishedWorkPicks(),
     prisma.setting.findUnique({ where: { id: "studio" } }),
   ]);
 
@@ -51,25 +56,19 @@ export default async function AdminHomePage() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="font-display text-4xl uppercase tracking-tight md:text-5xl">
-            Overview
-          </h1>
-          <p className="mt-2 text-sm text-white/45">
-            Studio pulse — work, enquiries, and what&apos;s live.
-          </p>
-        </div>
-        <Link
-          href="/admin/works/new"
-          className="inline-flex items-center gap-2 bg-signal px-5 py-3 text-ink micro"
-        >
-          <Plus size={14} />
-          Add work
-        </Link>
-      </div>
+      <AdminHeader
+        kicker="Studio"
+        title="Overview"
+        description="Work, enquiries, and what’s live."
+        action={
+          <Link href="/admin/works/new" className="dash-btn">
+            <Plus size={14} />
+            Add work
+          </Link>
+        }
+      />
 
-      <div className="mt-10 grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-3">
         <Stat
           label="Works"
           value={works}
@@ -96,6 +95,8 @@ export default async function AdminHomePage() {
 
       <DashboardCharts byCategory={byCategory} byYear={byYear} />
 
+      <SelectedWorkPicker works={pickWorks} />
+
       <div className="mt-10">
         <BannerVideoManager
           variant="compact"
@@ -114,9 +115,7 @@ export default async function AdminHomePage() {
 
       <div className="mt-12 grid gap-8 lg:grid-cols-5">
         <section className="lg:col-span-3">
-          <h2 className="font-display text-2xl uppercase tracking-tight">
-            Latest enquiries
-          </h2>
+          <h2 className="dash-section-title">Latest enquiries</h2>
           <div className="mt-4 overflow-hidden border border-white/10 bg-ink-2">
             {recent.length === 0 ? (
               <div className="px-6 py-16 text-center">
@@ -156,9 +155,7 @@ export default async function AdminHomePage() {
         </section>
 
         <section className="lg:col-span-2">
-          <h2 className="font-display text-2xl uppercase tracking-tight">
-            Recent work
-          </h2>
+          <h2 className="dash-section-title">Recent work</h2>
           <div className="mt-4 grid grid-cols-2 gap-3">
             {recentWorks.map((work) => (
               <Link
@@ -210,9 +207,7 @@ function Stat({
         <p className="micro text-white/40">{label}</p>
         <span className={accent ? "text-signal" : "text-white/30"}>{icon}</span>
       </div>
-      <p className="font-display mt-4 text-5xl tracking-tight md:text-6xl">
-        {String(value).padStart(2, "0")}
-      </p>
+      <p className="dash-stat mt-4 tabular-nums">{String(value).padStart(2, "0")}</p>
       <p className="mt-3 text-sm text-white/35">{note}</p>
     </Link>
   );

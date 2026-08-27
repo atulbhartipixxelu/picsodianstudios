@@ -17,9 +17,8 @@ export function Preloader({ onComplete }: Props) {
   const [visible, setVisible] = useState(true);
   const [armed, setArmed] = useState(false);
   const [count, setCount] = useState(3);
-  const [tc, setTc] = useState("00:00:00:00");
   const done = useRef(false);
-  const revealed = useRef(false);
+  const tcRef = useRef<HTMLParagraphElement>(null);
 
   function finish() {
     if (done.current) return;
@@ -29,17 +28,29 @@ export function Preloader({ onComplete }: Props) {
     onComplete();
   }
 
-  function revealSite() {
-    if (revealed.current) return;
-    revealed.current = true;
-    onComplete();
-  }
-
   useLayoutEffect(() => {
     document.documentElement.classList.add("is-booting");
     document.body.style.overflow = "hidden";
-    void document.fonts.load('80px "BrunsonRough"');
-    void document.fonts.load('16px "BrunsonRegular"');
+  }, []);
+
+  useEffect(() => {
+    const pauseOthers = () => {
+      if (done.current) return;
+      document.querySelectorAll("video").forEach((node) => {
+        if (node.classList.contains("loader-video")) return;
+        node.pause();
+        node.preload = "none";
+      });
+    };
+    pauseOthers();
+    const id = window.setInterval(() => {
+      if (done.current) {
+        window.clearInterval(id);
+        return;
+      }
+      pauseOthers();
+    }, 400);
+    return () => window.clearInterval(id);
   }, []);
 
   useEffect(() => {
@@ -47,29 +58,21 @@ export function Preloader({ onComplete }: Props) {
     let timers: number[] = [];
     let raf = 0;
 
-    const arm = () => {
-      if (cancelled) return;
-      setArmed(true);
-    };
-
     const fontReady = document.fonts.check('80px "BrunsonRough"')
       ? Promise.resolve()
       : document.fonts.load('80px "BrunsonRough"');
 
-    const wait = Promise.race([
+    Promise.race([
       fontReady,
-      new Promise<void>((resolve) => window.setTimeout(resolve, 700)),
-    ]);
-
-    wait.then(() => {
+      new Promise<void>((resolve) => window.setTimeout(resolve, 400)),
+    ]).then(() => {
       if (cancelled) return;
-      arm();
+      setArmed(true);
       timers = [
         window.setTimeout(() => setCount(2), BEAT),
         window.setTimeout(() => setCount(1), BEAT * 2),
         window.setTimeout(() => setCount(0), BEAT * 3),
-        window.setTimeout(revealSite, BEAT * 3 + 520),
-        window.setTimeout(() => setVisible(false), BEAT * 3 + 880),
+        window.setTimeout(() => setVisible(false), BEAT * 3 + 720),
       ];
     });
 
@@ -81,7 +84,9 @@ export function Preloader({ onComplete }: Props) {
       const mm = Math.floor(frames / 24 / 60) % 60;
       const hh = Math.floor(frames / 24 / 60 / 60);
       const pad = (n: number) => String(n).padStart(2, "0");
-      setTc(`${pad(hh)}:${pad(mm)}:${pad(ss)}:${pad(ff)}`);
+      if (tcRef.current) {
+        tcRef.current.textContent = `${pad(hh)}:${pad(mm)}:${pad(ss)}:${pad(ff)}`;
+      }
       raf = window.requestAnimationFrame(tick);
     };
     raf = window.requestAnimationFrame(tick);
@@ -115,11 +120,11 @@ export function Preloader({ onComplete }: Props) {
           initial={{ y: 0, opacity: 1 }}
           exit={{
             y: "-100%",
-            transition: { duration: 0.85, ease: [0.76, 0, 0.24, 1] },
+            transition: { duration: 0.7, ease: [0.76, 0, 0.24, 1] },
           }}
         >
           <LoaderVideo />
-          <LoaderBackdrop count={count} timecode={tc} />
+          <LoaderBackdrop count={count} timecodeRef={tcRef} />
 
           <div className="relative z-20 flex flex-col items-center gap-6">
             <p className="micro text-mist">Picsodian / Gate</p>
@@ -133,16 +138,16 @@ export function Preloader({ onComplete }: Props) {
               </span>
               <AnimatePresence initial={false}>
                 {armed ? (
-                <motion.p
-                  key={label}
-                  initial={{ opacity: 0, y: 28, filter: "blur(8px)", scale: 0.97 }}
-                  animate={{ opacity: 1, y: 0, filter: "blur(0px)", scale: 1 }}
-                  exit={{ opacity: 0, y: -26, filter: "blur(8px)", scale: 1.03 }}
-                  transition={{ duration: 0.42, ease: SMOOTH }}
-                  className="loader-num display-huge absolute inset-0 grid place-items-center text-[22vw] text-signal md:text-[12rem]"
-                >
-                  {label}
-                </motion.p>
+                  <motion.p
+                    key={label}
+                    initial={{ opacity: 0, y: 18, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -16, scale: 1.02 }}
+                    transition={{ duration: 0.28, ease: SMOOTH }}
+                    className="loader-num display-huge absolute inset-0 grid place-items-center text-[22vw] text-signal md:text-[12rem]"
+                  >
+                    {label}
+                  </motion.p>
                 ) : null}
               </AnimatePresence>
             </div>
@@ -159,7 +164,6 @@ export function Preloader({ onComplete }: Props) {
 
 function LoaderVideo() {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [live, setLive] = useState(false);
 
   useLayoutEffect(() => {
     const video = videoRef.current;
@@ -170,21 +174,15 @@ function LoaderVideo() {
     video.playsInline = true;
     video.preload = "auto";
 
-    const mark = () => setLive(true);
     const kick = () => {
-      const play = video.play();
-      if (play) play.then(mark).catch(() => {});
+      void video.play().catch(() => {});
     };
 
-    video.addEventListener("loadeddata", mark);
     video.addEventListener("canplay", kick);
-    video.addEventListener("playing", mark);
     kick();
 
     return () => {
-      video.removeEventListener("loadeddata", mark);
       video.removeEventListener("canplay", kick);
-      video.removeEventListener("playing", mark);
       video.pause();
     };
   }, []);
@@ -200,17 +198,23 @@ function LoaderVideo() {
         loop
         playsInline
         preload="auto"
-        data-ready={live ? "1" : "0"}
+        disablePictureInPicture
       />
       <div className="loader-video-veil" />
     </div>
   );
 }
 
-function LoaderBackdrop({ count, timecode }: { count: number; timecode: string }) {
+function LoaderBackdrop({
+  count,
+  timecodeRef,
+}: {
+  count: number;
+  timecodeRef: React.RefObject<HTMLParagraphElement | null>;
+}) {
   const dust = useMemo(
     () =>
-      Array.from({ length: 18 }, (_, i) => ({
+      Array.from({ length: 8 }, (_, i) => ({
         left: `${(i * 41) % 100}%`,
         top: `${(i * 27 + 8) % 90}%`,
         size: 1 + (i % 3),
@@ -222,17 +226,7 @@ function LoaderBackdrop({ count, timecode }: { count: number; timecode: string }
 
   return (
     <div className="pointer-events-none absolute inset-0 z-10 overflow-hidden" aria-hidden>
-      <div className="loader-beam" />
-      <div className="loader-reel" />
       <div className="loader-glow" />
-
-      <motion.div
-        key={`leader-${count}`}
-        className="loader-leader"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 0.28 }}
-        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-      />
 
       <svg className="loader-orbit" viewBox="0 0 400 400">
         <defs>
@@ -261,18 +255,11 @@ function LoaderBackdrop({ count, timecode }: { count: number; timecode: string }
         />
       ))}
 
-      <div className="loader-flare" />
       {count === 0 ? <div className="loader-go-burst" /> : null}
 
-      <div className="loader-grain" />
-      <div className="loader-flicker" />
-
-      <span className="finder finder-tl" />
-      <span className="finder finder-tr" />
-      <span className="finder finder-bl" />
-      <span className="finder finder-br" />
-
-      <p className="loader-tc">{timecode}</p>
+      <p ref={timecodeRef} className="loader-tc">
+        00:00:00:00
+      </p>
       <p className="loader-rec">Rolling</p>
     </div>
   );

@@ -10,6 +10,9 @@ export async function GET() {
       showreelUrl: settings?.showreelUrl ?? "",
       showreelPoster: settings?.showreelPoster ?? "",
       tagline: settings?.tagline ?? "",
+      instagram: settings?.instagram ?? "",
+      twitter: settings?.twitter ?? "",
+      vimeo: settings?.vimeo ?? "",
     },
     { headers: { "Cache-Control": "no-store" } },
   );

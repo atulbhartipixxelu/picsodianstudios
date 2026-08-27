@@ -2,32 +2,34 @@ import Link from "next/link";
 import { Pencil, Plus } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { SafeImage } from "@/components/ui/SafeImage";
+import { SelectWorkButton } from "@/components/admin/SelectWorkButton";
+import { AdminHeader } from "@/components/admin/AdminHeader";
+import { selectedByWorkId } from "@/lib/exclusiveSelect";
 
 export default async function AdminWorksPage() {
-  const works = await prisma.work.findMany({
-    orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
-  });
+  const [works, selectedMap] = await Promise.all([
+    prisma.work.findMany({
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+    }),
+    selectedByWorkId(),
+  ]);
 
   return (
     <div>
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="font-display text-4xl uppercase tracking-tight md:text-5xl">
-            Works
-          </h1>
-          <p className="mt-2 text-sm text-white/45">{works.length} projects in the library</p>
-        </div>
-        <Link
-          href="/admin/works/new"
-          className="inline-flex items-center gap-2 bg-signal px-5 py-3 text-ink micro"
-        >
-          <Plus size={14} />
-          Add work
-        </Link>
-      </div>
+      <AdminHeader
+        kicker="Library"
+        title="Works"
+        description={`${works.length} project${works.length === 1 ? "" : "s"} in the library`}
+        action={
+          <Link href="/admin/works/new" className="dash-btn">
+            <Plus size={14} />
+            Add work
+          </Link>
+        }
+      />
 
-      <div className="dash-panel mt-10 overflow-x-auto">
-        <table className="w-full min-w-[720px] text-left">
+      <div className="dash-panel overflow-x-auto">
+        <table className="dash-table">
           <thead>
             <tr className="border-b border-white/8">
               <th className="micro px-4 py-4 text-white/40">Work</th>
@@ -45,52 +47,61 @@ export default async function AdminWorksPage() {
                 </td>
               </tr>
             )}
-            {works.map((work) => (
-              <tr
-                key={work.id}
-                className="border-b border-white/8 last:border-b-0 hover:bg-white/[0.03]"
-              >
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-4">
-                    <SafeImage
-                      src={work.thumbnail || work.heroImage}
-                      alt={work.title}
-                      className="h-14 w-20 shrink-0 object-cover"
-                    />
-                    <span className="font-display text-lg uppercase tracking-tight">
-                      {work.title}
-                    </span>
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-sm text-white/55">{work.category}</td>
-                <td className="px-4 py-3 text-sm text-white/55">{work.year}</td>
-                <td className="px-4 py-3">
-                  <div className="flex flex-wrap gap-2">
-                    {work.published ? (
-                      <span className="bg-signal px-2 py-1 micro text-ink">Live</span>
-                    ) : (
-                      <span className="border border-white/15 px-2 py-1 micro text-white/50">
-                        Draft
-                      </span>
-                    )}
-                    {work.featured && (
-                      <span className="border border-white/15 px-2 py-1 micro text-white/70">
-                        Featured
-                      </span>
-                    )}
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <Link
-                    href={`/admin/works/${work.id}`}
-                    className="inline-flex items-center gap-2 bg-signal px-4 py-2 text-ink micro"
-                  >
-                    <Pencil size={12} />
-                    Edit
-                  </Link>
-                </td>
-              </tr>
-            ))}
+            {works.map((work) => {
+              const selected = selectedMap.get(work.id) ?? false;
+              return (
+                <tr
+                  key={work.id}
+                  className="border-b border-white/8 last:border-b-0 hover:bg-white/[0.03]"
+                >
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-4">
+                      <SafeImage
+                        src={work.thumbnail || work.heroImage}
+                        alt={work.title}
+                        className="h-14 w-20 shrink-0 object-cover"
+                      />
+                      <span className="dash-work-name">{work.title}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-white/55">{work.category}</td>
+                  <td className="px-4 py-3 text-sm text-white/55">{work.year}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-wrap gap-2">
+                      {work.published ? (
+                        <span className="bg-signal px-2 py-1 micro text-ink">Live</span>
+                      ) : (
+                        <span className="border border-white/15 px-2 py-1 micro text-white/50">
+                          Draft
+                        </span>
+                      )}
+                      {work.featured && (
+                        <span className="border border-white/15 px-2 py-1 micro text-white/70">
+                          Featured
+                        </span>
+                      )}
+                      {selected && (
+                        <span className="bg-signal px-2 py-1 micro text-ink">
+                          Work page
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <SelectWorkButton id={work.id} selected={selected} />
+                      <Link
+                        href={`/admin/works/${work.id}`}
+                        className="dash-btn dash-btn-ghost"
+                      >
+                        <Pencil size={12} />
+                        Edit
+                      </Link>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

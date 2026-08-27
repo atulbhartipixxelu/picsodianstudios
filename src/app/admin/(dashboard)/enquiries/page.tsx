@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { EnquiryList } from "@/components/admin/EnquiryList";
+import { AdminHeader } from "@/components/admin/AdminHeader";
 
 export default async function EnquiriesPage() {
   const items = await prisma.enquiry.findMany({
@@ -8,10 +9,11 @@ export default async function EnquiriesPage() {
 
   return (
     <div>
-      <h1 className="font-display text-4xl uppercase tracking-tight md:text-5xl">
-        Enquiries
-      </h1>
-      <p className="mt-2 text-sm text-white/45">Messages from the contact form.</p>
+      <AdminHeader
+        kicker="Inbox"
+        title="Enquiries"
+        description="Messages from the contact form."
+      />
       <EnquiryList
         items={items.map((item) => ({
           ...item,

@@ -76,11 +76,13 @@ export function serializeWork(work: {
   videoUrl: string;
   gallery: string;
   featured: boolean;
+  selected?: boolean;
   published: boolean;
   sortOrder: number;
 }) {
   return {
     ...work,
+    selected: Boolean(work.selected),
     thumbnail: mediaUrl(work.thumbnail, { slug: work.slug, kind: "thumbnail" }),
     heroImage: mediaUrl(work.heroImage, { slug: work.slug, kind: "heroImage" }),
     videoUrl: mediaUrl(work.videoUrl, { slug: work.slug, kind: "video" }),

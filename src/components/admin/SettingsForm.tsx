@@ -46,10 +46,10 @@ export function SettingsForm({ initial }: { initial: Settings }) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="mt-8 grid max-w-3xl gap-8">
+    <form onSubmit={onSubmit} className="grid max-w-3xl gap-8">
       <section className="dash-panel p-6 md:p-8">
         <p className="micro text-signal">Homepage banner</p>
-        <h2 className="font-display mt-2 text-2xl uppercase tracking-tight">
+        <h2 className="dash-section-title mt-2">
           Showreel video
         </h2>
         <p className="mt-2 text-sm text-white/45">
@@ -90,6 +90,22 @@ export function SettingsForm({ initial }: { initial: Settings }) {
           />
         </label>
         <label className="grid gap-2">
+          <span className="micro text-mist">X / Twitter</span>
+          <input
+            value={values.twitter}
+            onChange={(e) => patch("twitter", e.target.value)}
+            className="field"
+          />
+        </label>
+        <label className="grid gap-2">
+          <span className="micro text-mist">Vimeo</span>
+          <input
+            value={values.vimeo}
+            onChange={(e) => patch("vimeo", e.target.value)}
+            className="field"
+          />
+        </label>
+        <label className="grid gap-2">
           <span className="micro text-mist">About copy</span>
           <textarea
             rows={10}
@@ -102,7 +118,7 @@ export function SettingsForm({ initial }: { initial: Settings }) {
 
       {error ? <p className="text-sm text-signal">{error}</p> : null}
 
-      <button className="w-fit bg-signal px-5 py-3 text-ink micro">
+      <button className="dash-btn w-fit">
         {saved ? "Saved" : "Save settings"}
       </button>
     </form>

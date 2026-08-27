@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { WorkForm } from "@/components/admin/WorkForm";
+import { AdminHeader } from "@/components/admin/AdminHeader";
+import { workIsSelected } from "@/lib/exclusiveSelect";
 
 export default async function EditWorkPage({
   params,
@@ -10,14 +12,16 @@ export default async function EditWorkPage({
   const { id } = await params;
   const work = await prisma.work.findUnique({ where: { id } });
   if (!work) notFound();
+  const selected = await workIsSelected(work.id);
 
   return (
     <div>
-      <h1 className="font-display text-4xl uppercase tracking-tight md:text-5xl">
-        Edit work
-      </h1>
-      <p className="mt-2 text-sm text-white/45">{work.title}</p>
-      <div className="mt-8 max-w-3xl">
+      <AdminHeader
+        kicker="Library"
+        title="Edit work"
+        description={work.title}
+      />
+      <div className="max-w-3xl">
         <WorkForm
           id={work.id}
           initial={{
@@ -36,6 +40,7 @@ export default async function EditWorkPage({
             videoUrl: work.videoUrl,
             gallery: work.gallery,
             featured: work.featured,
+            selected,
             published: work.published,
             sortOrder: work.sortOrder,
           }}

@@ -35,12 +35,12 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
       <div
         className={
           ready
-            ? "relative opacity-100 transition-opacity duration-1000 ease-out"
+            ? "relative opacity-100 transition-opacity duration-700 ease-out"
             : "pointer-events-none relative opacity-0"
         }
       >
-        <div className="grain" aria-hidden />
-        <CustomCursor />
+        {ready ? <div className="grain" aria-hidden /> : null}
+        {ready ? <CustomCursor /> : null}
         <Nav />
         <SmoothScroll>
           <main className="relative z-10 min-h-screen">{children}</main>

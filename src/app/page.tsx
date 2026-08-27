@@ -5,7 +5,6 @@ import { FilmStrip } from "@/components/home/FilmStrip";
 import { HomeClose } from "@/components/home/HomeClose";
 import { HomeScrollExperience } from "@/components/home/HomeScrollExperience";
 import { Manifesto } from "@/components/home/Manifesto";
-import { ServicesMarquee } from "@/components/home/ServicesMarquee";
 import { ShowreelHero } from "@/components/home/ShowreelHero";
 import { HeroScrollWrap } from "@/components/layout/HeroScrollWrap";
 import { FALLBACK_SHOWREEL } from "@/lib/video";
@@ -43,19 +42,11 @@ export default async function HomePage() {
       <HomeScrollExperience
         works={featured.length ? featured : publicWorks}
         reel={reel}
-        videoUrl={showreelUrl}
-        poster={showreelPoster}
       />
 
       <Manifesto still={heroWork?.thumbnail} />
       <FilmStrip works={featured.length ? featured : publicWorks} />
       <FeaturedWork work={heroWork} />
-      <ServicesMarquee
-        stills={(featured.length ? featured : publicWorks)
-          .slice(0, 8)
-          .map((w) => w.thumbnail || w.heroImage)
-          .filter(Boolean)}
-      />
       <HomeClose
         stills={(featured.length ? featured : publicWorks)
           .slice(0, 3)

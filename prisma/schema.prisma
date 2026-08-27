@@ -33,6 +33,7 @@ model Work {
   videoUrl   String   @default("")
   gallery    String   @default("[]")
   featured   Boolean  @default(false)
+  selected   Boolean  @default(false)
   published  Boolean  @default(true)
   sortOrder  Int      @default(0)
   createdAt  DateTime @default(now())

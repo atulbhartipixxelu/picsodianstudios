@@ -4,6 +4,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
 import { revalidateSite } from "@/lib/revalidateSite";
+import { exclusiveSelectWork } from "@/lib/exclusiveSelect";
 
 const workSchema = z.object({
   title: z.string().min(2).optional(),
@@ -21,6 +22,7 @@ const workSchema = z.object({
   videoUrl: z.string().optional(),
   gallery: z.string().optional(),
   featured: z.boolean().optional(),
+  selected: z.boolean().optional(),
   published: z.boolean().optional(),
   sortOrder: z.coerce.number().int().optional(),
 });
@@ -42,13 +44,20 @@ export async function PATCH(
   const { id } = await ctx.params;
   try {
     const body = workSchema.parse(await req.json());
+    const { selected, ...rest } = body;
     const data = {
-      ...body,
-      ...(body.slug || body.title
-        ? { slug: slugify(body.slug || body.title || "") }
+      ...rest,
+      ...(rest.slug || rest.title
+        ? { slug: slugify(rest.slug || rest.title || "") }
         : {}),
     };
-    const work = await prisma.work.update({ where: { id }, data });
+    if (Object.keys(data).length) {
+      await prisma.work.update({ where: { id }, data });
+    }
+    if (typeof selected === "boolean") {
+      await exclusiveSelectWork(id, selected);
+    }
+    const work = await prisma.work.findUniqueOrThrow({ where: { id } });
     revalidateSite();
     revalidatePath(`/work/${work.slug}`);
     return NextResponse.json(work);

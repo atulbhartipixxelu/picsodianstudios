@@ -34,7 +34,7 @@ export function EnquiryList({ items }: { items: Enquiry[] }) {
 
   if (!items.length) {
     return (
-      <div className="mt-8 border border-white/10 bg-ink-2 px-6 py-20 text-center">
+      <div className="dash-panel px-6 py-20 text-center">
         <p className="text-white/50">No enquiries yet.</p>
         <p className="micro mt-2 text-white/30">
           New contact form messages will show up here.
@@ -44,14 +44,12 @@ export function EnquiryList({ items }: { items: Enquiry[] }) {
   }
 
   return (
-    <div className="mt-8 grid gap-4">
+    <div className="grid gap-4">
       {items.map((item) => (
         <article key={item.id} className="dash-panel p-6">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h2 className="font-display text-2xl uppercase tracking-tight">
-                {item.name}
-              </h2>
+              <h2 className="dash-section-title">{item.name}</h2>
               <p className="mt-1 text-sm text-white/45">
                 {item.email}
                 {item.company ? ` · ${item.company}` : ""}

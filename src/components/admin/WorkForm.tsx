@@ -24,6 +24,7 @@ export type WorkFormValues = {
   videoUrl: string;
   gallery: string;
   featured: boolean;
+  selected: boolean;
   published: boolean;
   sortOrder: number;
 };
@@ -44,6 +45,7 @@ const EMPTY: WorkFormValues = {
   videoUrl: "",
   gallery: "[]",
   featured: false,
+  selected: false,
   published: true,
   sortOrder: 0,
 };
@@ -287,7 +289,7 @@ export function WorkForm({
           className="field font-mono text-xs"
         />
       </Field>
-      <div className="grid gap-5 md:grid-cols-3">
+      <div className="grid gap-5 md:grid-cols-4">
         <Field label="Sort order">
           <input
             type="number"
@@ -307,19 +309,31 @@ export function WorkForm({
         <label className="micro flex items-center gap-2 pt-7">
           <input
             type="checkbox"
+            checked={values.selected}
+            onChange={(e) => set("selected", e.target.checked)}
+          />
+          Selected on Work page
+        </label>
+        <label className="micro flex items-center gap-2 pt-7">
+          <input
+            type="checkbox"
             checked={values.published}
             onChange={(e) => set("published", e.target.checked)}
           />
           Published
         </label>
       </div>
+      <p className="-mt-2 text-xs text-white/40">
+        Selected work appears under the banner on the Work page. Only one work
+        can be selected at a time.
+      </p>
       {error && <p className="micro text-heat">{error}</p>}
       <div className="flex gap-3">
-        <button disabled={saving || uploading !== null} className="bg-signal px-5 py-3 text-ink micro">
+        <button disabled={saving || uploading !== null} className="dash-btn">
           {saving ? "Saving…" : "Save work"}
         </button>
         {id && (
-          <button type="button" onClick={onDelete} className="border border-heat px-5 py-3 text-heat micro">
+          <button type="button" onClick={onDelete} className="dash-btn dash-btn-ghost text-heat">
             Delete
           </button>
         )}

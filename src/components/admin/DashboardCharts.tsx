@@ -18,16 +18,12 @@ export function DashboardCharts({
     <div className="mt-10 grid gap-4 lg:grid-cols-2">
       <section className="dash-panel p-6 md:p-7">
         <p className="micro text-white/40">Library mix</p>
-        <h2 className="font-display mt-2 text-2xl uppercase tracking-tight">
-          Works by category
-        </h2>
+        <h2 className="dash-section-title mt-2">Works by category</h2>
         <DonutChart data={byCategory} />
       </section>
       <section className="dash-panel p-6 md:p-7">
         <p className="micro text-white/40">Output</p>
-        <h2 className="font-display mt-2 text-2xl uppercase tracking-tight">
-          Works by year
-        </h2>
+        <h2 className="dash-section-title mt-2">Works by year</h2>
         <BarChart data={byYear} />
       </section>
     </div>
@@ -104,7 +100,7 @@ function DonutChart({ data }: { data: ChartSlice[] }) {
           ))}
         </svg>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <p className="font-display text-4xl tracking-tight">
+          <p className="dash-stat">
             {focused ? String(focused.value).padStart(2, "0") : String(total).padStart(2, "0")}
           </p>
           <p className="micro mt-1 text-white/40">

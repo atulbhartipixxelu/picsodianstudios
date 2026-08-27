@@ -170,7 +170,7 @@ export function BannerVideoManager({ initial, variant = "full" }: Props) {
                   <p className="micro text-signal">
                     Uploading {uploading === "video" ? "video" : "poster"}
                   </p>
-                  <p className="mt-2 font-display text-3xl text-white">
+                  <p className="dash-stat mt-2">
                     {progress?.percent ?? 0}%
                   </p>
                   <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/15">
@@ -191,14 +191,14 @@ export function BannerVideoManager({ initial, variant = "full" }: Props) {
             {!compact ? (
               <>
                 <p className="micro text-signal">Homepage banner</p>
-                <h2 className="font-display mt-2 text-2xl uppercase tracking-tight">
+                <h2 className="dash-section-title mt-2">
                   Showreel video
                 </h2>
               </>
             ) : (
               <>
                 <p className="micro text-signal">Homepage</p>
-                <h2 className="font-display mt-2 text-xl uppercase tracking-tight">
+                <h2 className="dash-section-title mt-2">
                   Banner video
                 </h2>
               </>

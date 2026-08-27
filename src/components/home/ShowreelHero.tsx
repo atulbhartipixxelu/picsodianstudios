@@ -34,6 +34,7 @@ export function ShowreelHero({ videoUrl, poster }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const wrapRef = useRef<HTMLElement>(null);
   const [playing, setPlaying] = useState(true);
+  const [muted, setMuted] = useState(true);
   const [src, setSrc] = useState(videoUrl);
   const [cover, setCover] = useState(poster);
   const [booting, setBooting] = useState(true);
@@ -42,6 +43,10 @@ export function ShowreelHero({ videoUrl, poster }: Props) {
     setSrc(videoUrl);
     setCover(poster);
   }, [videoUrl, poster]);
+
+  useEffect(() => {
+    setMuted(true);
+  }, [src]);
 
   useEffect(() => {
     if (!document.documentElement.classList.contains("is-booting")) {
@@ -188,6 +193,14 @@ export function ShowreelHero({ videoUrl, poster }: Props) {
     }
   };
 
+  const toggleMute = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    const next = !video.muted;
+    video.muted = next;
+    setMuted(next);
+  };
+
   const embed = embedSrc(src);
 
   return (
@@ -210,7 +223,7 @@ export function ShowreelHero({ videoUrl, poster }: Props) {
           src={src}
           poster={cover}
           autoPlay={!booting}
-          muted
+          muted={muted}
           loop
           playsInline
           preload={booting ? "none" : "auto"}
@@ -235,7 +248,12 @@ export function ShowreelHero({ videoUrl, poster }: Props) {
           </div>
 
           {!embed && (
-            <PlayPauseControl playing={playing} onToggle={togglePlayback} />
+            <PlayPauseControl
+              playing={playing}
+              muted={muted}
+              onToggle={togglePlayback}
+              onMuteToggle={toggleMute}
+            />
           )}
         </div>
       </div>

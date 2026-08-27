@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Logo } from "./Logo";
@@ -24,8 +24,70 @@ const MARQUEE = [
   "Character",
 ];
 
+const SOCIAL_FALLBACK = {
+  instagram: "https://www.instagram.com/picsodianstudios",
+  twitter: "https://x.com/picsodianstudios",
+  vimeo: "https://vimeo.com/picsodianstudios",
+};
+
+function hrefOr(value: string, fallback: string) {
+  const next = value.trim();
+  if (!next) return fallback;
+  if (/^https?:\/\//i.test(next)) return next;
+  return `https://${next.replace(/^\/+/, "")}`;
+}
+
+function InstagramIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden
+      className="h-[16px] w-[16px]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+function XIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden className="h-[15px] w-[15px]" fill="currentColor">
+      <path d="M18.9 2H22l-6.8 7.8L22.7 22h-6.4l-5-6.6L5.7 22H2.5l7.3-8.3L1.6 2h6.6l4.5 6L18.9 2Zm-1.1 18.1h1.8L6.4 3.8H4.5l13.3 16.3Z" />
+    </svg>
+  );
+}
+
+function VimeoIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden className="h-[16px] w-[16px]" fill="currentColor">
+      <path d="M22.2 8.4c-.1 2.3-1.7 5.5-4.8 9.4-3.2 4.1-5.9 6.2-8.1 6.2-1.4 0-2.5-1.3-3.5-3.8L4 13.3C3.2 10.8 2.4 9.6 1.5 9.6c-.2 0-.9.4-2.1 1.2L0 9.2C2.1 7.4 4.2 5.5 5.8 5.4c1.8-.2 2.9 1 3.3 3.5.5 2.7.8 4.4 1 5 .6 2.6 1.2 3.9 1.9 3.9.8 0 2.1-1.3 3.7-4 1.6-2.6 2.5-4.6 2.6-5.9.2-2.1-.6-3.2-2.4-3.2-.8 0-1.7.2-2.6.6 1.7-5.6 5-8.3 9.8-8.1 3.6.2 5.3 2.4 5.1 6.7Z" />
+    </svg>
+  );
+}
+
 export function Footer() {
   const root = useRef<HTMLElement>(null);
+  const [socials, setSocials] = useState(SOCIAL_FALLBACK);
+
+  useEffect(() => {
+    fetch("/api/studio", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data: { instagram?: string; twitter?: string; vimeo?: string }) => {
+        setSocials({
+          instagram: hrefOr(data.instagram ?? "", SOCIAL_FALLBACK.instagram),
+          twitter: hrefOr(data.twitter ?? "", SOCIAL_FALLBACK.twitter),
+          vimeo: hrefOr(data.vimeo ?? "", SOCIAL_FALLBACK.vimeo),
+        });
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const el = root.current;
@@ -183,8 +245,8 @@ export function Footer() {
               to hit the screen hard.
             </p>
           </div>
-          <div className="micro space-y-4">
-            <div className="flex flex-wrap gap-x-3 gap-y-2">
+          <div className="micro space-y-5 md:text-center">
+            <div className="flex flex-wrap gap-x-3 gap-y-2 md:justify-center">
               {LINKS.map((link, i) => (
                 <span key={link.href} className="flex items-center gap-3">
                   <Link
@@ -207,6 +269,38 @@ export function Footer() {
                 creatives@picsodianstudios.com
               </a>
             </p>
+            <div className="foot-social">
+              <a
+                href={socials.instagram}
+                target="_blank"
+                rel="noreferrer"
+                data-cursor="Instagram"
+                aria-label="Instagram"
+                className="foot-social-btn"
+              >
+                <InstagramIcon />
+              </a>
+              <a
+                href={socials.twitter}
+                target="_blank"
+                rel="noreferrer"
+                data-cursor="X"
+                aria-label="X"
+                className="foot-social-btn"
+              >
+                <XIcon />
+              </a>
+              <a
+                href={socials.vimeo}
+                target="_blank"
+                rel="noreferrer"
+                data-cursor="Vimeo"
+                aria-label="Vimeo"
+                className="foot-social-btn"
+              >
+                <VimeoIcon />
+              </a>
+            </div>
           </div>
           <p className="micro md:text-right">
             © {new Date().getFullYear()} Picsodian Studios.

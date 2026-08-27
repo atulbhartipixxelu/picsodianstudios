@@ -55,16 +55,8 @@ export function CustomCursor() {
       rx += (tx - rx) * 0.13;
       ry += (ty - ry) * 0.13;
 
-      const vx = tx - rx;
-      const vy = ty - ry;
-      const speed = Math.min(Math.hypot(vx, vy) * 0.04, 0.7);
-      const angle = Math.atan2(vy, vx) * (180 / Math.PI);
-      const hovering = rootEl.dataset.state === "hover";
-
       coreEl.style.transform = `translate3d(${cx}px, ${cy}px, 0) translate(-50%, -50%)`;
-      ringEl.style.transform = hovering
-        ? `translate3d(${rx}px, ${ry}px, 0) translate(-50%, -50%)`
-        : `translate3d(${rx}px, ${ry}px, 0) translate(-50%, -50%) rotate(${angle}deg) scale(${1 + speed * 0.45}, ${Math.max(1 - speed * 0.28, 0.68)})`;
+      ringEl.style.transform = `translate3d(${rx}px, ${ry}px, 0) translate(-50%, -50%)`;
 
       history.pop();
       history.unshift({ x: cx, y: cy });
@@ -151,11 +143,6 @@ export function CustomCursor() {
         ))}
       </div>
       <div ref={ring} className="ps-cursor-ring">
-        <span className="ps-shutter ps-shutter-l" />
-        <span className="ps-shutter ps-shutter-r" />
-        <span className="ps-crosshair-h" />
-        <span className="ps-crosshair-v" />
-        <span className="ps-tick" />
         <span ref={label} className="ps-cursor-label" />
       </div>
       <div ref={core} className="ps-cursor-core" />

@@ -6,9 +6,9 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { PublicWork } from "@/lib/utils";
-import { FilmFrame } from "@/components/ui/FilmFrame";
 import { PageReveal } from "@/components/ui/PageReveal";
 import { SafeImage } from "@/components/ui/SafeImage";
+import { SelectedWork } from "@/components/work/SelectedWork";
 
 const FILTERS = ["All", "2D", "Motion", "Film", "Character", "3D"];
 const TITLE = "THE WORK";
@@ -38,19 +38,30 @@ function useReelCount(target: number) {
   return n;
 }
 
-export function WorkIndex({ works }: { works: PublicWork[] }) {
+export function WorkIndex({
+  works,
+  selected,
+}: {
+  works: PublicWork[];
+  selected: PublicWork | null;
+}) {
   const router = useRouter();
   const [filter, setFilter] = useState("All");
-  const [mode, setMode] = useState<"grid" | "list">("grid");
-  const [preview, setPreview] = useState<PublicWork | null>(null);
-  const [cursor, setCursor] = useState({ x: 0, y: 0 });
+  const [activeId, setActiveId] = useState<string | null>(selected?.id ?? null);
 
   const visible = useMemo(() => {
     if (filter === "All") return works;
     return works.filter((w) => w.category === filter);
   }, [filter, works]);
 
+  const active = visible.find((w) => w.id === activeId) ?? visible[0] ?? null;
   const reel = useReelCount(visible.length);
+
+  useEffect(() => {
+    const pick =
+      visible.find((w) => w.id === selected?.id) ?? visible[0] ?? null;
+    setActiveId(pick?.id ?? null);
+  }, [filter, selected?.id]);
 
   const names = works.map((w) => w.title).join("  ·  ") + "  ·  ";
   const marquee = names + names;
@@ -59,42 +70,28 @@ export function WorkIndex({ works }: { works: PublicWork[] }) {
     <PageReveal>
       <div className="relative z-10 min-h-screen bg-ink text-paper">
         <section className="work-hero">
-          <div className="work-hero-grid" aria-hidden />
-          <span className="finder finder-tl work-hero-finder" aria-hidden />
-          <span className="finder finder-tr work-hero-finder" aria-hidden />
-          <span className="finder finder-bl work-hero-finder" aria-hidden />
-          <span className="finder finder-br work-hero-finder" aria-hidden />
-          <span className="work-hero-beam" aria-hidden />
+          <div className="work-fx" aria-hidden>
+            <div className="work-fx-wash" />
+            <span className="work-fx-scan" />
+            <span className="work-fx-bar" />
+            <span className="work-fx-dust" />
+            <span className="work-fx-dust work-fx-dust-2" />
+            <span className="work-fx-dust work-fx-dust-3" />
+            <span className="work-fx-dust work-fx-dust-4" />
+          </div>
 
           <div className="work-hero-top">
-            <div className="flex items-center gap-3">
-              <span className="crosshair work-hero-cross" aria-hidden />
-              <p className="micro text-signal">Index / Work</p>
-            </div>
-            <motion.div
+            <p className="micro text-signal">Index / Work</p>
+            <motion.button
+              type="button"
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.45, duration: 0.55 }}
-              className="micro flex items-center gap-3 text-mist"
+              onClick={() => setFilter("All")}
+              className="micro text-mist hover:text-signal"
             >
-              <button
-                onClick={() => setMode("grid")}
-                className={cn(mode === "grid" ? "text-signal" : "hover:text-paper")}
-              >
-                Grid
-              </button>
-              <span>/</span>
-              <button
-                onClick={() => setMode("list")}
-                className={cn(mode === "list" ? "text-signal" : "hover:text-paper")}
-              >
-                List
-              </button>
-              <span>/</span>
-              <button onClick={() => setFilter("All")} className="hover:text-signal">
-                Reset
-              </button>
-            </motion.div>
+              Reset
+            </motion.button>
           </div>
 
           <div className="work-hero-row">
@@ -121,142 +118,126 @@ export function WorkIndex({ works }: { works: PublicWork[] }) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.85, duration: 0.6 }}
             >
-              Pictures with a pulse. Filter by craft, or switch the index.
+              Pictures with a pulse. Hover a title, open the cut.
             </motion.p>
           </div>
         </section>
+
+        {selected ? <SelectedWork work={selected} /> : null}
 
         <div className="work-marquee border-y border-white/8 py-2.5">
           <p className="work-marquee-track micro text-white/25">{marquee}</p>
         </div>
 
-        <div className="mt-2 flex flex-wrap gap-x-1 gap-y-2 px-4 py-4 md:px-7">
-          {FILTERS.map((item, i) => (
-            <motion.span
-              key={item}
-              className="flex items-center"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 + i * 0.05 }}
-            >
-              <button
-                onClick={() => setFilter(item)}
-                data-cursor="Filter"
-                className={cn(
-                  "relative px-2 py-1 micro transition-colors",
-                  filter === item ? "text-signal" : "text-mist hover:text-paper",
-                )}
-              >
-                {filter === item && (
-                  <motion.span
-                    layoutId="work-filter"
-                    className="absolute inset-x-1 -bottom-0.5 h-px bg-signal"
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                  />
-                )}
-                {item} [
-                {item === "All"
+        <div className="work-trays">
+          <p className="micro text-mist">Filter / Tray</p>
+          <div className="work-trays-row">
+            {FILTERS.map((item, i) => {
+              const count =
+                item === "All"
                   ? works.length
-                  : works.filter((w) => w.category === item).length}
-                ]
-              </button>
-              {i < FILTERS.length - 1 && <span className="text-line">/</span>}
-            </motion.span>
-          ))}
+                  : works.filter((w) => w.category === item).length;
+              const on = filter === item;
+
+              return (
+                <motion.button
+                  key={item}
+                  type="button"
+                  onClick={() => setFilter(item)}
+                  data-cursor="Filter"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.08 + i * 0.05 }}
+                  className={cn("work-tray", on && "is-on")}
+                >
+                  {on ? (
+                    <motion.span
+                      layoutId="work-tray-fill"
+                      className="work-tray-fill"
+                      transition={{ type: "spring", stiffness: 380, damping: 34 }}
+                    />
+                  ) : null}
+                  <span className="work-tray-name">{item}</span>
+                  <span className="work-tray-count">
+                    {String(count).padStart(2, "0")}
+                  </span>
+                </motion.button>
+              );
+            })}
+          </div>
         </div>
 
         <AnimatePresence mode="wait">
-          {mode === "grid" ? (
-            <motion.section
-              key={`grid-${filter}`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="grid gap-8 px-4 pb-28 sm:grid-cols-2 lg:grid-cols-3 md:px-7"
-            >
-              {visible.map((work, i) => (
-                <FilmFrame
-                  key={work.id}
-                  work={work}
-                  index={i}
-                  href={`/work/${work.slug}`}
-                />
-              ))}
-            </motion.section>
-          ) : (
-            <motion.section
-              key={`list-${filter}`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="relative px-4 pb-28 md:px-7"
-              onMouseMove={(e) => setCursor({ x: e.clientX, y: e.clientY })}
-              onMouseLeave={() => setPreview(null)}
-            >
-              <div className="micro hidden grid-cols-12 border-b border-line py-3 text-mist md:grid">
-                <span className="col-span-1">#</span>
-                <span className="col-span-5">Title</span>
-                <span className="col-span-2">Type</span>
-                <span className="col-span-2">Director</span>
-                <span className="col-span-2 text-right">Year</span>
-              </div>
-              {visible.map((work, i) => (
-                <motion.div
-                  key={work.id}
-                  initial={{ opacity: 0, x: -24 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.06, duration: 0.45 }}
-                >
-                  <Link
-                    href={`/work/${work.slug}`}
-                    data-cursor="Open"
-                    onMouseEnter={() => setPreview(work)}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      router.push(`/work/${work.slug}`);
-                    }}
-                    className="group relative z-10 flex items-baseline justify-between gap-4 border-b border-line py-5 md:grid md:grid-cols-12 md:items-center"
-                  >
-                    <span className="micro hidden text-mist md:col-span-1 md:block">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <span className="font-display text-xl uppercase tracking-tight transition-transform duration-500 group-hover:translate-x-2 group-hover:text-signal md:col-span-5 md:text-3xl">
-                      {work.title}
-                    </span>
-                    <span className="micro hidden text-mist md:col-span-2 md:block">
-                      {work.category}
-                    </span>
-                    <span className="micro hidden text-mist md:col-span-2 md:block">
-                      {work.director || "—"}
-                    </span>
-                    <span className="micro shrink-0 text-signal md:col-span-2 md:text-right">
-                      {work.year}
-                    </span>
-                  </Link>
-                </motion.div>
-              ))}
+          <motion.section
+            key={`board-${filter}`}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.35 }}
+            className="work-board"
+          >
+            {visible.length === 0 || !active ? (
+              <p className="px-4 py-24 text-center text-sm text-mist md:px-7">
+                No cuts in this tray.
+              </p>
+            ) : (
+              <>
+                <div className="work-board-stage">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={active.id}
+                      initial={{ opacity: 0, scale: 1.04 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.98 }}
+                      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                      className="work-board-frame"
+                    >
+                      <SafeImage
+                        src={active.thumbnail || active.heroImage}
+                        alt={active.title}
+                        className="work-board-still"
+                      />
+                      <span className="work-scan" />
+                      <div className="work-board-meta">
+                        <p className="micro text-paper/80">
+                          {active.category} / {active.year}
+                        </p>
+                        <p className="work-board-name">{active.title}</p>
+                      </div>
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
 
-              <motion.div
-                className="pointer-events-none fixed top-0 left-0 z-40 hidden w-72 overflow-hidden border border-signal/70 md:block"
-                animate={{
-                  x: cursor.x + 28,
-                  y: cursor.y - 90,
-                  opacity: preview ? 1 : 0,
-                  scale: preview ? 1 : 0.86,
-                  rotate: preview ? -4 : 8,
-                }}
-                transition={{ type: "spring", stiffness: 220, damping: 22, mass: 0.6 }}
-              >
-                {preview ? (
-                  <SafeImage
-                    src={preview.thumbnail || preview.heroImage}
-                    alt={preview.title}
-                    className="aspect-[16/10] w-full object-cover"
-                  />
-                ) : null}
-              </motion.div>
-            </motion.section>
-          )}
+                <ol className="work-board-list">
+                  {visible.map((work, i) => {
+                    const on = work.id === active.id;
+                    return (
+                      <li key={work.id}>
+                        <Link
+                          href={`/work/${work.slug}`}
+                          data-cursor="View"
+                          className={cn("work-board-row", on && "is-on")}
+                          onMouseEnter={() => setActiveId(work.id)}
+                          onFocus={() => setActiveId(work.id)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            router.push(`/work/${work.slug}`);
+                          }}
+                        >
+                          <span className="work-board-idx">
+                            {String(i + 1).padStart(2, "0")}
+                          </span>
+                          <span className="work-board-title">{work.title}</span>
+                          <span className="work-board-cat">{work.category}</span>
+                          <span className="work-board-year">{work.year}</span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </>
+            )}
+          </motion.section>
         </AnimatePresence>
       </div>
     </PageReveal>

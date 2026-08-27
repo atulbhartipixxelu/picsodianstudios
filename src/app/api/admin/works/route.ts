@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
 import { revalidateSite } from "@/lib/revalidateSite";
+import { exclusiveSelectWork } from "@/lib/exclusiveSelect";
 
 const workSchema = z.object({
   title: z.string().min(2),
@@ -20,6 +21,7 @@ const workSchema = z.object({
   videoUrl: z.string().optional().default(""),
   gallery: z.string().optional().default("[]"),
   featured: z.boolean().optional().default(false),
+  selected: z.boolean().optional().default(false),
   published: z.boolean().optional().default(true),
   sortOrder: z.coerce.number().int().optional().default(0),
 });
@@ -39,7 +41,9 @@ export async function POST(req: Request) {
     if (existing) {
       return NextResponse.json({ error: "Slug already exists." }, { status: 409 });
     }
-    const work = await prisma.work.create({ data: { ...body, slug } });
+    const { selected, ...rest } = body;
+    const work = await prisma.work.create({ data: { ...rest, slug } });
+    if (selected) await exclusiveSelectWork(work.id, true);
     revalidateSite();
     return NextResponse.json(work);
   } catch (error) {

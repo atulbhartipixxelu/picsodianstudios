@@ -1,17 +1,17 @@
 import { prisma } from "@/lib/prisma";
 import { SettingsForm } from "@/components/admin/SettingsForm";
+import { AdminHeader } from "@/components/admin/AdminHeader";
 
 export default async function SettingsPage() {
   const settings = await prisma.setting.findUnique({ where: { id: "studio" } });
 
   return (
     <div>
-      <h1 className="font-display text-4xl uppercase tracking-tight md:text-5xl">
-        Settings
-      </h1>
-      <p className="mt-2 text-sm text-white/45">
-        Studio copy and contact email. Banner video is on the Banner page.
-      </p>
+      <AdminHeader
+        kicker="Studio"
+        title="Settings"
+        description="Studio copy, contact email, and social links. Banner video is on the Banner page."
+      />
       <SettingsForm
         initial={{
           tagline: settings?.tagline ?? "",

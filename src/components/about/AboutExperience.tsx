@@ -7,6 +7,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SafeImage } from "@/components/ui/SafeImage";
 import { stillSrc } from "@/lib/utils";
+import { FALLBACK_SHOWREEL } from "@/lib/video";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -38,6 +39,7 @@ const VALUES = [
 ];
 
 const HERO = ["Built around ideas,", "motion, and people", "who care."];
+const GATE_COPY = "PICSODIAN STUDIOS  ·  24 FPS  ·  GATE  ·  SILENCE ON SET  ·  ";
 
 type Props = {
   paragraphs: string[];
@@ -149,12 +151,7 @@ export function AboutExperience({ paragraphs, stills = [] }: Props) {
           </div>
 
           <div className="about-hero-still" data-in>
-            <span className="finder finder-tl" />
-            <span className="finder finder-tr" />
-            <span className="finder finder-bl" />
-            <span className="finder finder-br" />
-            <SafeImage src={frames[0]} alt="" />
-            <span className="about-hero-still-label">01 / On set</span>
+            <AboutHeroGate />
           </div>
         </div>
 
@@ -260,6 +257,61 @@ export function AboutExperience({ paragraphs, stills = [] }: Props) {
           </Link>
         </div>
       </section>
+    </div>
+  );
+}
+
+function AboutHeroGate() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = true;
+    video.playsInline = true;
+    const play = () => {
+      if (document.documentElement.classList.contains("is-booting")) return;
+      void video.play().catch(() => {});
+    };
+    video.addEventListener("canplay", play);
+    play();
+    const obs = new MutationObserver(play);
+    obs.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => {
+      video.removeEventListener("canplay", play);
+      obs.disconnect();
+      video.pause();
+    };
+  }, []);
+
+  return (
+    <div className="about-gate">
+      <video
+        ref={videoRef}
+        className="about-gate-video"
+        src={`${FALLBACK_SHOWREEL}#t=0.001`}
+        muted
+        loop
+        playsInline
+        preload="metadata"
+      />
+      <div className="about-gate-veil" />
+      <div className="about-gate-glow" />
+      <svg className="about-gate-orbit" viewBox="0 0 400 400">
+        <defs>
+          <path
+            id="about-orbit"
+            d="M200,200 m-148,0 a148,148 0 1,1 296,0 a148,148 0 1,1 -296,0"
+          />
+        </defs>
+        <text className="about-gate-orbit-text">
+          <textPath href="#about-orbit">{GATE_COPY.repeat(2)}</textPath>
+        </text>
+      </svg>
+      <span className="about-hero-still-label">Rolling</span>
     </div>
   );
 }

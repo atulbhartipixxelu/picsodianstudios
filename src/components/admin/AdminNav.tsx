@@ -32,14 +32,14 @@ export function AdminNav({ name }: { name: string }) {
   }
 
   return (
-    <aside className="fixed top-0 left-0 z-20 hidden h-screen w-64 flex-col border-r border-white/8 bg-ink-2 md:flex">
-      <div className="px-6 py-6">
-        <Logo className="h-12" />
-        <p className="micro mt-4 text-signal">Studio admin</p>
-        <p className="mt-1 text-sm text-white/50">{name}</p>
+    <aside className="fixed top-0 left-0 z-20 hidden h-screen w-64 flex-col border-r border-white/8 bg-ink md:flex">
+      <div className="border-b border-white/8 px-6 py-6">
+        <Logo className="h-10" />
+        <p className="micro mt-4 text-white/35">Studio admin</p>
+        <p className="mt-1 truncate text-sm text-white/70">{name}</p>
       </div>
 
-      <nav className="flex flex-1 flex-col gap-1 px-3">
+      <nav className="flex flex-1 flex-col gap-0.5 py-4">
         {LINKS.map((link) => {
           const active =
             link.href === "/admin"
@@ -50,14 +50,9 @@ export function AdminNav({ name }: { name: string }) {
             <Link
               key={link.href}
               href={link.href}
-              className={cn(
-                "flex items-center gap-3 px-4 py-3 text-sm transition-colors",
-                active
-                  ? "bg-signal text-ink"
-                  : "text-white/60 hover:bg-white/5 hover:text-white",
-              )}
+              className={cn("dash-nav-link", active && "is-on")}
             >
-              <Icon size={16} />
+              <Icon size={16} strokeWidth={1.6} />
               {link.label}
             </Link>
           );
@@ -66,9 +61,9 @@ export function AdminNav({ name }: { name: string }) {
 
       <button
         onClick={logout}
-        className="flex items-center gap-3 border-t border-white/8 px-7 py-5 text-left text-sm text-white/45 hover:text-signal"
+        className="dash-nav-link mb-3 border-t border-white/8"
       >
-        <LogOut size={16} />
+        <LogOut size={16} strokeWidth={1.6} />
         Log out
       </button>
     </aside>

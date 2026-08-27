@@ -13,23 +13,20 @@ export default async function AdminDashboardLayout({
   if (!session) redirect("/admin/login");
 
   return (
-    <div className="min-h-screen bg-ink text-paper">
+    <div className="dash-app min-h-screen bg-ink text-paper">
       <AdminNav name={session.name} />
       <div className="ml-0 md:ml-64">
-        <header className="flex items-center justify-between px-6 py-5 md:px-10">
-          <div>
-            <p className="micro text-signal">Picsodian Studios</p>
-            <p className="mt-1 text-sm text-white/40">Dashboard</p>
-          </div>
+        <header className="flex items-center justify-between border-b border-white/8 px-6 py-3.5 md:px-10">
+          <p className="text-sm text-white/40">Studio dashboard</p>
           <Link
             href="/"
             target="_blank"
-            className="border border-white/15 px-4 py-2 text-sm text-white/80 transition-colors hover:border-signal hover:text-signal"
+            className="dash-btn dash-btn-ghost"
           >
             View site
           </Link>
         </header>
-        <nav className="flex gap-2 overflow-x-auto px-6 pb-2 md:hidden">
+        <nav className="flex gap-2 overflow-x-auto border-b border-white/8 px-6 py-3 md:hidden">
           {[
             ["/admin", "Overview"],
             ["/admin/banner", "Banner"],
@@ -40,14 +37,13 @@ export default async function AdminDashboardLayout({
             <Link
               key={href}
               href={href}
-              className="shrink-0 border border-white/10 px-3 py-1.5 text-xs uppercase tracking-wider text-white/70"
+              className="shrink-0 border border-white/10 px-3 py-1.5 text-xs text-white/70 hover:border-white/30 hover:text-paper"
             >
               {label}
             </Link>
           ))}
         </nav>
-        <div className="relative px-6 pb-16 md:px-10">
-          <div className="pointer-events-none absolute -top-24 right-0 h-72 w-72 bg-signal/8 blur-[100px]" />
+        <div className="px-6 py-8 pb-16 md:px-10 md:py-10">
           <AdminReveal>{children}</AdminReveal>
         </div>
       </div>
