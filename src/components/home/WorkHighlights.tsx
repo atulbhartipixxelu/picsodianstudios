@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { cubicBezier, motion, useScroll, useTransform } from "framer-motion";
 import gsap from "gsap";
@@ -70,15 +70,79 @@ export function WorkHighlights({
 
 function CaseMedia({ work }: { work: PublicWork }) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const src = work.videoUrl && isDirectVideo(work.videoUrl) ? work.videoUrl : FALLBACK_VIDEO;
+  const [booted, setBooted] = useState(false);
   const embed = work.videoUrl ? embedVideoSrc(work.videoUrl) : null;
+  const src =
+    work.videoUrl && isDirectVideo(work.videoUrl)
+      ? work.videoUrl
+      : embed
+        ? ""
+        : FALLBACK_VIDEO;
   const poster = work.heroImage || work.thumbnail;
 
   useEffect(() => {
+    const go = () => setBooted(true);
+    if (!document.documentElement.classList.contains("is-booting")) {
+      go();
+      return;
+    }
+    window.addEventListener("ps:ready", go);
+    const obs = new MutationObserver(() => {
+      if (!document.documentElement.classList.contains("is-booting")) go();
+    });
+    obs.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => {
+      window.removeEventListener("ps:ready", go);
+      obs.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
     const video = videoRef.current;
-    if (!video || embed) return;
-    video.play().catch(() => {});
-  }, [embed, src]);
+    if (!video || !booted || embed) return;
+
+    video.muted = true;
+    video.defaultMuted = true;
+    video.playsInline = true;
+    video.preload = "auto";
+
+    const play = () => {
+      if (document.documentElement.classList.contains("is-booting")) return;
+      void video.play().catch(() => {});
+    };
+
+    play();
+    video.addEventListener("canplay", play);
+    video.addEventListener("loadeddata", play);
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) play();
+        else video.pause();
+      },
+      { threshold: 0.15, rootMargin: "20% 0px" },
+    );
+    io.observe(video);
+
+    return () => {
+      video.removeEventListener("canplay", play);
+      video.removeEventListener("loadeddata", play);
+      io.disconnect();
+    };
+  }, [booted, embed, src]);
+
+  if (!booted) {
+    return (
+      <SafeImage
+        src={poster}
+        alt={work.title}
+        className="h-full w-full object-cover"
+      />
+    );
+  }
 
   if (embed) {
     return (
@@ -101,6 +165,8 @@ function CaseMedia({ work }: { work: PublicWork }) {
       muted
       loop
       playsInline
+      preload="auto"
+      disablePictureInPicture
     />
   );
 }

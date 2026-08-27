@@ -16,5 +16,9 @@ export function embedVideoSrc(url: string) {
 }
 
 export function isDirectVideo(url: string) {
-  return /\.(mp4|webm|mov)(\?|$)/i.test(url);
+  if (!url) return false;
+  if (/^data:video\//i.test(url)) return true;
+  if (/^blob:/i.test(url)) return true;
+  if (/blob\.vercel-storage\.com/i.test(url)) return true;
+  return /\.(mp4|webm|mov)(\?|#|$)/i.test(url);
 }
