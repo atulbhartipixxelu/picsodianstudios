@@ -40,17 +40,9 @@ export function WorkHighlights({
     <div ref={ref} className="relative z-20 h-[100svh]">
       <motion.div
         style={{ y }}
-        className="relative flex h-screen flex-col overflow-hidden bg-ink text-paper"
+        className="relative flex h-screen flex-col overflow-hidden bg-transparent text-paper"
       >
-        <div className="absolute inset-0">
-          <SafeImage
-            src="/highlights-city.jpg"
-            alt=""
-            className="highlights-photo h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-ink/20" />
-          <div className="absolute inset-0 bg-gradient-to-r from-ink/45 via-transparent to-ink/25" />
-        </div>
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/55 via-transparent to-ink/25" />
 
         <div className="relative z-10 flex h-full flex-col px-4 pt-24 pb-10 md:px-8 lg:px-10">
           <div className="flex items-center gap-3">
@@ -172,7 +164,7 @@ function CaseMedia({ work }: { work: PublicWork }) {
 }
 
 /**
- * Project card — rotates in to a full-screen hold, then the next section takes over.
+ * Project card — rotates in with scroll, then the next slide takes over immediately.
  */
 export function HighlightCase({
   work,
@@ -216,15 +208,6 @@ export function HighlightCase({
           },
         },
       );
-
-      ScrollTrigger.create({
-        trigger: el,
-        start: "top top",
-        end: "+=80%",
-        pin: true,
-        anticipatePin: 1,
-        invalidateOnRefresh: true,
-      });
     }, el);
 
     const refresh = () => ScrollTrigger.refresh();
@@ -256,7 +239,7 @@ export function HighlightCase({
               e.preventDefault();
               router.push(`/work/${work.slug}`);
             }}
-            className="micro shrink-0 pb-1 text-signal"
+            className="micro shrink-0 pb-1 text-paper hover:text-blue"
           >
             View project →
           </Link>

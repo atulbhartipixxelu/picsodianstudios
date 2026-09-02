@@ -1,19 +1,13 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getPublicStudio } from "@/lib/public-data";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export async function GET() {
-  const settings = await prisma.setting.findUnique({ where: { id: "studio" } });
-  return NextResponse.json(
-    {
-      showreelUrl: settings?.showreelUrl ?? "",
-      showreelPoster: settings?.showreelPoster ?? "",
-      tagline: settings?.tagline ?? "",
-      instagram: settings?.instagram ?? "",
-      twitter: settings?.twitter ?? "",
-      vimeo: settings?.vimeo ?? "",
+  const settings = await getPublicStudio();
+  return NextResponse.json(settings, {
+    headers: {
+      "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
     },
-    { headers: { "Cache-Control": "no-store" } },
-  );
+  });
 }

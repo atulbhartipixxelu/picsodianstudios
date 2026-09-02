@@ -1,4 +1,5 @@
 export const FALLBACK_SHOWREEL = "/homepagevideo.mp4";
+export const FALLBACK_BACKDROP = "/home-backdrop.mp4";
 
 export function embedVideoSrc(url: string) {
   if (!url) return null;

@@ -14,7 +14,7 @@ type Props = {
 /** Scroll stack — starts AFTER the banner section */
 export function HomeScrollExperience({ works, reel }: Props) {
   return (
-    <div className="relative z-0 isolate max-w-[100vw] bg-ink">
+    <div className="relative z-0 max-w-[100vw] bg-transparent">
       <WorkHighlights works={works} />
 
       <div className="relative z-30">

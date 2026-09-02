@@ -47,6 +47,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           type="font/ttf"
           crossOrigin="anonymous"
         />
+        <link
+          rel="preload"
+          href="/fonts/LemonMilk-Regular.woff"
+          as="font"
+          type="font/woff"
+          crossOrigin="anonymous"
+        />
         <SiteChrome>{children}</SiteChrome>
       </body>
     </html>

@@ -2,16 +2,6 @@
 
 import { useState } from "react";
 
-const TYPES = [
-  "Film",
-  "Music video",
-  "Commercial",
-  "Game cinematic",
-  "Original",
-  "Other",
-];
-const BUDGETS = ["Let's talk", "Under $10k", "$10k–$40k", "$40k–$100k", "$100k+"];
-
 export function EnquiryForm() {
   const [status, setStatus] = useState<"idle" | "sending" | "ok" | "err">("idle");
   const [error, setError] = useState("");
@@ -41,7 +31,7 @@ export function EnquiryForm() {
   if (status === "ok") {
     return (
       <div className="contact-ok">
-        <p className="micro text-paper/55">Received / 24 fps</p>
+        <p className="contact-ok-kicker">Received</p>
         <p className="contact-ok-title">We&apos;ll be in touch.</p>
         <p>
           Your enquiry is with the studio. If it&apos;s urgent, write
@@ -55,57 +45,47 @@ export function EnquiryForm() {
     <form onSubmit={onSubmit} className="contact-form">
       <div className="contact-form-pair">
         <label className="contact-field">
-          <span>01 / Name *</span>
-          <input required name="name" autoComplete="name" />
+          <span>Name *</span>
+          <input required name="name" autoComplete="name" placeholder="Your name" />
         </label>
         <label className="contact-field">
-          <span>02 / Email *</span>
-          <input required type="email" name="email" autoComplete="email" />
+          <span>Email *</span>
+          <input
+            required
+            type="email"
+            name="email"
+            autoComplete="email"
+            placeholder="you@studio.com"
+          />
         </label>
       </div>
       <label className="contact-field">
-        <span>03 / Company</span>
-        <input name="company" autoComplete="organization" />
+        <span>Company</span>
+        <input name="company" autoComplete="organization" placeholder="Studio or brand" />
       </label>
-
-      <fieldset className="contact-field">
-        <span>04 / Project type</span>
-        <div className="contact-picks">
-          {TYPES.map((type) => (
-            <label key={type}>
-              <input type="radio" name="projectType" value={type} />
-              <em>{type}</em>
-            </label>
-          ))}
-        </div>
-      </fieldset>
-
-      <fieldset className="contact-field">
-        <span>05 / Budget</span>
-        <div className="contact-picks">
-          {BUDGETS.map((budget) => (
-            <label key={budget}>
-              <input type="radio" name="budget" value={budget} />
-              <em>{budget}</em>
-            </label>
-          ))}
-        </div>
-      </fieldset>
-
-      <label className="contact-field">
-        <span>06 / Message *</span>
-        <textarea required name="message" rows={5} minLength={10} />
+      <label className="contact-field contact-field-message">
+        <span>Message *</span>
+        <textarea
+          required
+          name="message"
+          rows={6}
+          minLength={10}
+          placeholder="Tell us what you want to make."
+        />
       </label>
 
       {error ? <p className="contact-error">{error}</p> : null}
 
-      <button
-        disabled={status === "sending"}
-        data-cursor="Send"
-        className="contact-send"
-      >
-        {status === "sending" ? "Sending…" : "Send enquiry"}
-      </button>
+      <div className="contact-form-foot">
+        <p className="contact-form-meta">No brief is too early.</p>
+        <button
+          disabled={status === "sending"}
+          data-cursor="Send"
+          className="contact-send"
+        >
+          {status === "sending" ? "Sending…" : "Send enquiry"}
+        </button>
+      </div>
     </form>
   );
 }

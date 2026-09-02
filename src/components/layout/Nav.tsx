@@ -20,8 +20,25 @@ export function Nav() {
   const [frame, setFrame] = useState(0);
 
   useEffect(() => {
+    const warm = () => {
+      LINKS.forEach((link) => router.prefetch(link.href));
+    };
+    const idle =
+      "requestIdleCallback" in window
+        ? window.requestIdleCallback(warm)
+        : window.setTimeout(warm, 120);
+    return () => {
+      if ("cancelIdleCallback" in window) {
+        window.cancelIdleCallback(idle as number);
+      } else {
+        window.clearTimeout(idle as number);
+      }
+    };
+  }, [router]);
+
+  useEffect(() => {
     const id = window.setInterval(() => setFrame((f) => (f + 1) % 24), 1000 / 24);
-    return () => clearInterval(id);
+    return () => window.clearInterval(id);
   }, []);
 
   useEffect(() => {
@@ -29,11 +46,6 @@ export function Nav() {
   }, [pathname]);
 
   const isHome = pathname === "/";
-
-  function go(href: string) {
-    setOpen(false);
-    router.push(href);
-  }
 
   return (
     <header
@@ -46,10 +58,6 @@ export function Nav() {
         <Link
           href="/"
           data-cursor="Home"
-          onClick={(e) => {
-            e.preventDefault();
-            go("/");
-          }}
           className="relative z-[91] flex items-center gap-3"
         >
           <Logo
@@ -62,40 +70,36 @@ export function Nav() {
           />
         </Link>
 
-        <nav className="relative z-[91] hidden items-center gap-1 md:flex">
-          {LINKS.map((link, i) => {
-            const active =
-              link.href === "/"
-                ? pathname === "/"
-                : pathname.startsWith(link.href);
-            return (
-              <span key={link.href} className="flex items-center">
-                <Link
-                  href={link.href}
-                  data-cursor={link.label}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    go(link.href);
-                  }}
-                  className={cn(
-                    "px-3 py-2 text-[13px] tracking-[0.18em] uppercase transition-colors drop-shadow-[0_1px_6px_rgba(51,51,51,0.85)]",
-                    active ? "text-signal" : "text-paper hover:text-signal",
+        <div className="flex items-center gap-5 md:gap-7">
+          <nav className="relative z-[91] hidden items-center gap-1 md:flex">
+            {LINKS.map((link, i) => {
+              const active =
+                link.href === "/"
+                  ? pathname === "/"
+                  : pathname.startsWith(link.href);
+              return (
+                <span key={link.href} className="flex items-center">
+                  <Link
+                    href={link.href}
+                    prefetch
+                    data-cursor={link.label}
+                    className={cn(
+                      "px-3 py-2 text-[13px] tracking-[0.18em] uppercase transition-colors drop-shadow-[0_1px_6px_rgba(51,51,51,0.85)]",
+                      active ? "text-paper" : "text-paper/80 hover:text-blue",
+                    )}
+                  >
+                    {link.label}
+                  </Link>
+                  {i < LINKS.length - 1 && (
+                    <span className="pointer-events-none text-paper/40 drop-shadow-[0_1px_6px_rgba(51,51,51,0.85)]">
+                      /
+                    </span>
                   )}
-                >
-                  {link.label}
-                </Link>
-                {i < LINKS.length - 1 && (
-                  <span className="pointer-events-none text-paper/40 drop-shadow-[0_1px_6px_rgba(51,51,51,0.85)]">
-                    /
-                  </span>
-                )}
-              </span>
-            );
-          })}
-        </nav>
-
-        <div className="flex items-center gap-4">
-          <p className="micro hidden text-paper/90 drop-shadow-[0_1px_6px_rgba(51,51,51,0.85)] sm:block">
+                </span>
+              );
+            })}
+          </nav>
+          <p className="nav-fps micro hidden text-paper/90 drop-shadow-[0_1px_6px_rgba(51,51,51,0.85)] sm:block">
             {String(frame).padStart(2, "0")}
             <span className="text-mist">/24 fps</span>
           </p>
@@ -117,17 +121,14 @@ export function Nav() {
               <Link
                 key={link.href}
                 href={link.href}
+                prefetch
                 data-cursor={link.label}
-                onClick={(e) => {
-                  e.preventDefault();
-                  go(link.href);
-                }}
                 className={cn(
                   "display-huge py-2 text-5xl",
                   pathname === link.href ||
                     (link.href !== "/" && pathname.startsWith(link.href))
-                    ? "text-signal"
-                    : "text-paper",
+                    ? "text-paper"
+                    : "text-paper/70 hover:text-blue",
                 )}
               >
                 {link.label}

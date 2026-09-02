@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -10,7 +10,7 @@ import { PageReveal } from "@/components/ui/PageReveal";
 import { SafeImage } from "@/components/ui/SafeImage";
 import { SelectedWork } from "@/components/work/SelectedWork";
 
-const FILTERS = ["All", "2D", "Motion", "Film", "Character", "3D"];
+const FILTERS = ["All", "2D", "Motion", "3D"] as const;
 const TITLE = "THE WORK";
 
 function useReelCount(target: number) {
@@ -38,6 +38,63 @@ function useReelCount(target: number) {
   return n;
 }
 
+function WorkMarquee({ titles }: { titles: string[] }) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const groupRef = useRef<HTMLDivElement>(null);
+  const [repeat, setRepeat] = useState(8);
+  const [duration, setDuration] = useState(22);
+  const seedKey = titles.join("|") || "Picsodian Studios";
+  const seed = useMemo(
+    () => (titles.length ? titles : ["Picsodian Studios"]),
+    [seedKey],
+  );
+
+  useLayoutEffect(() => {
+    const wrap = wrapRef.current;
+    const group = groupRef.current;
+    if (!wrap || !group) return;
+
+    const fit = () => {
+      const cycle = group.scrollWidth / Math.max(repeat, 1);
+      if (cycle <= 0) return;
+      const next = Math.max(6, Math.ceil((wrap.offsetWidth * 1.25) / cycle));
+      if (next !== repeat) setRepeat(next);
+      setDuration(Math.max(16, group.scrollWidth / 70));
+    };
+
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(wrap);
+    return () => ro.disconnect();
+  }, [repeat, seedKey]);
+
+  const items = Array.from({ length: repeat }, () => seed).flat();
+
+  return (
+    <div ref={wrapRef} className="work-marquee" aria-hidden>
+      <div
+        className="work-marquee-track"
+        style={{ animationDuration: `${duration}s` }}
+      >
+        {[0, 1].map((copy) => (
+          <div
+            key={copy}
+            ref={copy === 0 ? groupRef : undefined}
+            className="work-marquee-group"
+          >
+            {items.map((title, i) => (
+              <span key={`${copy}-${i}`} className="work-marquee-item">
+                {title}
+                <span className="work-marquee-dot" />
+              </span>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function WorkIndex({
   works,
   selected,
@@ -47,6 +104,7 @@ export function WorkIndex({
 }) {
   const router = useRouter();
   const [filter, setFilter] = useState("All");
+  const [traysOpen, setTraysOpen] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(selected?.id ?? null);
 
   const visible = useMemo(() => {
@@ -63,23 +121,12 @@ export function WorkIndex({
     setActiveId(pick?.id ?? null);
   }, [filter, selected?.id]);
 
-  const names = works.map((w) => w.title).join("  ·  ") + "  ·  ";
-  const marquee = names + names;
+  const marqueeTitles = works.map((w) => w.title).filter(Boolean);
 
   return (
     <PageReveal>
       <div className="relative z-10 min-h-screen bg-ink text-paper">
         <section className="work-hero">
-          <div className="work-fx" aria-hidden>
-            <div className="work-fx-wash" />
-            <span className="work-fx-scan" />
-            <span className="work-fx-bar" />
-            <span className="work-fx-dust" />
-            <span className="work-fx-dust work-fx-dust-2" />
-            <span className="work-fx-dust work-fx-dust-3" />
-            <span className="work-fx-dust work-fx-dust-4" />
-          </div>
-
           <div className="work-hero-top">
             <p className="micro text-signal">Index / Work</p>
             <motion.button
@@ -87,8 +134,11 @@ export function WorkIndex({
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.45, duration: 0.55 }}
-              onClick={() => setFilter("All")}
-              className="micro text-mist hover:text-signal"
+              onClick={() => {
+                setFilter("All");
+                setTraysOpen(false);
+              }}
+              className="micro text-mist hover:text-blue"
             >
               Reset
             </motion.button>
@@ -125,14 +175,14 @@ export function WorkIndex({
 
         {selected ? <SelectedWork work={selected} /> : null}
 
-        <div className="work-marquee border-y border-white/8 py-2.5">
-          <p className="work-marquee-track micro text-white/25">{marquee}</p>
-        </div>
+        <WorkMarquee titles={marqueeTitles} />
 
         <div className="work-trays">
           <p className="micro text-mist">Filter / Tray</p>
           <div className="work-trays-row">
             {FILTERS.map((item, i) => {
+              if (item !== "All" && !traysOpen) return null;
+
               const count =
                 item === "All"
                   ? works.length
@@ -143,11 +193,15 @@ export function WorkIndex({
                 <motion.button
                   key={item}
                   type="button"
-                  onClick={() => setFilter(item)}
+                  onClick={() => {
+                    setFilter(item);
+                    if (item === "All") setTraysOpen(true);
+                  }}
                   data-cursor="Filter"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.08 + i * 0.05 }}
+                  exit={{ opacity: 0, y: 8 }}
+                  transition={{ delay: item === "All" ? 0 : 0.04 * i, duration: 0.28 }}
                   className={cn("work-tray", on && "is-on")}
                 >
                   {on ? (

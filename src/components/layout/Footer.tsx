@@ -77,7 +77,7 @@ export function Footer() {
   const [socials, setSocials] = useState(SOCIAL_FALLBACK);
 
   useEffect(() => {
-    fetch("/api/studio", { cache: "no-store" })
+    fetch("/api/studio")
       .then((res) => res.json())
       .then((data: { instagram?: string; twitter?: string; vimeo?: string }) => {
         setSocials({
@@ -127,11 +127,11 @@ export function Footer() {
           <p className="micro hidden sm:block">Picsodian / 2026</p>
         </div>
 
-        <div className="grid items-center gap-10 lg:grid-cols-12">
+        <div className="grid items-start gap-10 sm:grid-cols-2 lg:grid-cols-12 lg:gap-12">
           <Link
             href="/contact"
             data-cursor="Enquire"
-            className="group lg:col-span-8"
+            className="group sm:col-span-2 lg:col-span-6"
           >
             <h2 className="display-huge foot-cta">
               <span className="block overflow-x-visible overflow-y-hidden pb-[0.08em] pr-[0.2em]">
@@ -168,52 +168,56 @@ export function Footer() {
             </p>
           </Link>
 
-          <div className="relative mx-auto grid h-64 w-64 place-items-center sm:h-80 sm:w-80 lg:col-span-4 lg:h-[22rem] lg:w-[22rem]">
-            <span className="absolute inset-12 rounded-full border border-dashed border-ink/25" />
-            <svg
-              viewBox="0 0 320 320"
-              className="absolute inset-0 h-full w-full animate-[ps-orbit_20s_linear_infinite]"
-            >
-              <defs>
-                <path
-                  id="footer-orbit"
-                  d="M 160,160 m -132,0 a 132,132 0 1,1 264,0 a 132,132 0 1,1 -264,0"
-                />
-              </defs>
-              <circle
-                cx="160"
-                cy="160"
-                r="132"
-                fill="none"
-                stroke="rgba(51,51,51,0.2)"
-                strokeWidth="1"
-              />
-              <text
-                fill="#333333"
-                stroke="#F2F0F0"
-                strokeWidth="9"
-                strokeLinejoin="round"
-                paintOrder="stroke fill"
-                fontSize="12"
-                letterSpacing="6"
-              >
-                <textPath href="#footer-orbit">
-                  START A PROJECT — ENQUIRE NOW — PICSODIAN STUDIOS —
-                </textPath>
-              </text>
-            </svg>
-            <Link
-              href="/contact"
-              data-cursor="Go"
-              className="relative z-10 grid h-36 w-36 place-items-center rounded-full bg-ink text-paper shadow-[0_20px_50px_rgba(51,51,51,0.25)] transition-transform duration-500 hover:scale-110 sm:h-44 sm:w-44"
-            >
-              <span className="text-center">
-                <span className="font-display block text-2xl tracking-[1.5px] uppercase sm:text-3xl">
-                  Go
-                </span>
-                <span className="micro mt-1 block">Enquire now</span>
-              </span>
-            </Link>
+          <div className="foot-dir-block lg:col-span-3">
+            <p className="foot-dir-title">Quick links</p>
+            <ul>
+              {LINKS.map((link, i) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    data-cursor={link.label}
+                    data-no-magnet
+                    className="foot-dir-row"
+                  >
+                    <span className="foot-dir-idx">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span className="foot-dir-name">{link.label}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="foot-dir-block lg:col-span-3">
+            <p className="foot-dir-title">Social</p>
+            <ul>
+              {(
+                [
+                  {
+                    href: socials.instagram,
+                    label: "Instagram",
+                    icon: <InstagramIcon />,
+                  },
+                  { href: socials.twitter, label: "X", icon: <XIcon /> },
+                  { href: socials.vimeo, label: "Vimeo", icon: <VimeoIcon /> },
+                ] as const
+              ).map((item) => (
+                <li key={item.label}>
+                  <a
+                    href={item.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    data-cursor={item.label}
+                    data-no-magnet
+                    className="foot-dir-row"
+                  >
+                    <span className="foot-dir-ico">{item.icon}</span>
+                    <span className="foot-dir-name">{item.label}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 
@@ -231,82 +235,34 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 grid gap-8 md:grid-cols-3">
+        <div className="mt-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div>
             <Link
               href="/"
               data-cursor="Home"
               className="inline-block transition-transform duration-300 hover:scale-105"
             >
-              <Logo className="h-14 md:h-16 brightness-0" />
+              <Logo variant="wordmark" className="h-16 w-auto md:h-20" />
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-ink/80">
               Creative visual studio. Motion, film, character, and worlds built
               to hit the screen hard.
             </p>
           </div>
-          <div className="micro space-y-5 md:text-center">
-            <div className="flex flex-wrap gap-x-3 gap-y-2 md:justify-center">
-              {LINKS.map((link, i) => (
-                <span key={link.href} className="flex items-center gap-3">
-                  <Link
-                    href={link.href}
-                    data-cursor={link.label}
-                    className="relative after:absolute after:right-0 after:bottom-0 after:left-0 after:h-px after:origin-left after:scale-x-0 after:bg-ink after:transition-transform after:duration-300 hover:after:scale-x-100"
-                  >
-                    {link.label}
-                  </Link>
-                  {i < LINKS.length - 1 && <span>/</span>}
-                </span>
-              ))}
-            </div>
+          <div className="micro space-y-2 md:text-right">
+            <a
+              href="mailto:creatives@picsodianstudios.com"
+              data-cursor="Mail"
+              className="hover:underline"
+            >
+              creatives@picsodianstudios.com
+            </a>
             <p>
-              <a
-                href="mailto:creatives@picsodianstudios.com"
-                data-cursor="Mail"
-                className="hover:underline"
-              >
-                creatives@picsodianstudios.com
-              </a>
+              © {new Date().getFullYear()} Picsodian Studios.
+              <br />
+              All rights reserved.
             </p>
-            <div className="foot-social">
-              <a
-                href={socials.instagram}
-                target="_blank"
-                rel="noreferrer"
-                data-cursor="Instagram"
-                aria-label="Instagram"
-                className="foot-social-btn"
-              >
-                <InstagramIcon />
-              </a>
-              <a
-                href={socials.twitter}
-                target="_blank"
-                rel="noreferrer"
-                data-cursor="X"
-                aria-label="X"
-                className="foot-social-btn"
-              >
-                <XIcon />
-              </a>
-              <a
-                href={socials.vimeo}
-                target="_blank"
-                rel="noreferrer"
-                data-cursor="Vimeo"
-                aria-label="Vimeo"
-                className="foot-social-btn"
-              >
-                <VimeoIcon />
-              </a>
-            </div>
           </div>
-          <p className="micro md:text-right">
-            © {new Date().getFullYear()} Picsodian Studios.
-            <br />
-            All rights reserved.
-          </p>
         </div>
       </div>
     </footer>

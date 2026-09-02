@@ -66,13 +66,13 @@ export function FeaturedWork({ work }: { work: PublicWork | null }) {
             <Link
               href={`/work/${work.slug}`}
               data-cursor="Play"
-              className="border border-signal bg-signal px-6 py-3 text-ink micro"
+              className="border border-blue bg-blue px-6 py-3 text-paper micro"
             >
               Play case study
             </Link>
             <Link
               href="/work"
-              className="border border-paper/30 px-6 py-3 micro"
+              className="border border-paper/30 px-6 py-3 micro hover:border-blue hover:text-blue"
               data-cursor="Index"
             >
               Full index

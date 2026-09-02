@@ -6,7 +6,7 @@ import { PageReveal } from "@/components/ui/PageReveal";
 import { SafeImage } from "@/components/ui/SafeImage";
 import { ScrollWords } from "@/components/ui/ScrollWords";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export async function generateMetadata({
   params,
@@ -163,7 +163,9 @@ export default async function WorkDetailPage({
                 <p className="micro text-signal">Next project</p>
                 <p className="display-huge mt-2 text-5xl md:text-7xl">{next.title}</p>
               </div>
-              <span className="micro text-signal">Open →</span>
+              <span className="micro text-paper transition-colors group-hover:text-blue">
+                Open →
+              </span>
             </div>
           </Link>
         )}

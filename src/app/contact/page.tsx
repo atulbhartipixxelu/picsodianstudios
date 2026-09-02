@@ -1,12 +1,21 @@
 import { ContactExperience } from "@/components/contact/ContactExperience";
 import { PageReveal } from "@/components/ui/PageReveal";
+import { getPublicStudio } from "@/lib/public-data";
 
+export const revalidate = 60;
 export const metadata = { title: "Contact" };
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const studio = await getPublicStudio();
+
   return (
     <PageReveal>
-      <ContactExperience />
+      <ContactExperience
+        email={studio.email}
+        instagram={studio.instagram}
+        twitter={studio.twitter}
+        vimeo={studio.vimeo}
+      />
     </PageReveal>
   );
 }

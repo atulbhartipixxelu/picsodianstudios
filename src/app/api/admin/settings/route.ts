@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { prisma } from "@/lib/prisma";
 
 const schema = z.object({
@@ -27,8 +27,11 @@ export async function PATCH(req: Request) {
       update: body,
       create: { id: "studio", ...body },
     });
+    revalidateTag("studio");
     revalidatePath("/", "layout");
     revalidatePath("/");
+    revalidatePath("/about");
+    revalidatePath("/contact");
     revalidatePath("/admin");
     revalidatePath("/admin/banner");
     revalidatePath("/admin/settings");

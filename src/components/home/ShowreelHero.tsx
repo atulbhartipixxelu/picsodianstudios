@@ -67,11 +67,6 @@ export function ShowreelHero({ videoUrl, poster }: Props) {
   }, []);
 
   useEffect(() => {
-    setSrc(videoUrl);
-    setCover(poster);
-  }, [videoUrl, poster]);
-
-  useEffect(() => {
     let cancelled = false;
 
     const load = () => {

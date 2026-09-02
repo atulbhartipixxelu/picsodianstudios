@@ -50,7 +50,7 @@ export function FilmFrame({
           <p className="micro text-mist">
             {String(index + 1).padStart(2, "0")} / {work.category}
           </p>
-          <h2 className="font-display mt-1 text-2xl tracking-tight uppercase transition-colors group-hover:text-signal">
+          <h2 className="font-display mt-1 text-2xl tracking-tight uppercase transition-colors group-hover:text-blue">
             {work.title}
           </h2>
         </div>
