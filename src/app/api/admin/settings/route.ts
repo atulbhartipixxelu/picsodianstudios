@@ -27,7 +27,7 @@ export async function PATCH(req: Request) {
       update: body,
       create: { id: "studio", ...body },
     });
-    revalidateTag("studio");
+    revalidateTag("studio", "max");
     revalidatePath("/", "layout");
     revalidatePath("/");
     revalidatePath("/about");

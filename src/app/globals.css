@@ -643,7 +643,6 @@ label,
   color: transparent;
   -webkit-text-stroke: 1px rgba(242, 240, 240, 0.1);
   white-space: nowrap;
-  animation: studio-drift 22s ease-in-out infinite;
 }
 
 @keyframes studio-drift {

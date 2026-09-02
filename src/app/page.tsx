@@ -17,6 +17,8 @@ export default async function HomePage() {
   ]);
   const featured = publicWorks.filter((w) => w.featured);
   const reel = (featured.length ? featured : publicWorks).slice(0, 3);
+  const pinnedReel = reel.slice(0, 1);
+  const restReel = reel.slice(1);
   const heroWork =
     publicWorks.find((w) => w.slug === "the-crew") ?? publicWorks[0] ?? null;
 
@@ -33,9 +35,17 @@ export default async function HomePage() {
         </HeroScrollWrap>
         <HomeScrollExperience
           works={featured.length ? featured : publicWorks}
-          reel={reel}
+          reel={pinnedReel}
         />
       </HomeShowreelStage>
+
+      <HomeScrollExperience
+        works={featured.length ? featured : publicWorks}
+        reel={restReel}
+        showIntro={false}
+        startIndex={1}
+        solid
+      />
 
       <Manifesto still={heroWork?.thumbnail} />
       <FeaturedWork work={heroWork} />

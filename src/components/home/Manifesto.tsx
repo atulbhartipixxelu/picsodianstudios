@@ -126,7 +126,6 @@ export function Manifesto({ still }: Props) {
         <span className="studio-fx-iris" />
         <span className="studio-fx-iris studio-fx-iris-2" />
         <span className="studio-fx-iris studio-fx-iris-3" />
-        <div className="studio-fx-sweep" />
         <span className="studio-fx-mote" />
         <span className="studio-fx-mote studio-fx-mote-2" />
         <span className="studio-fx-mote studio-fx-mote-3" />

@@ -20,20 +20,10 @@ export function Nav() {
   const [frame, setFrame] = useState(0);
 
   useEffect(() => {
-    const warm = () => {
+    const id = window.setTimeout(() => {
       LINKS.forEach((link) => router.prefetch(link.href));
-    };
-    const idle =
-      "requestIdleCallback" in window
-        ? window.requestIdleCallback(warm)
-        : window.setTimeout(warm, 120);
-    return () => {
-      if ("cancelIdleCallback" in window) {
-        window.cancelIdleCallback(idle as number);
-      } else {
-        window.clearTimeout(idle as number);
-      }
-    };
+    }, 120);
+    return () => window.clearTimeout(id);
   }, [router]);
 
   useEffect(() => {

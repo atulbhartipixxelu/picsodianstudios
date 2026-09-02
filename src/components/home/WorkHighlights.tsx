@@ -169,11 +169,13 @@ function CaseMedia({ work }: { work: PublicWork }) {
 export function HighlightCase({
   work,
   index,
+  solid = false,
 }: {
   work: PublicWork;
   index: number;
   total?: number;
   isLast?: boolean;
+  solid?: boolean;
 }) {
   const root = useRef<HTMLElement>(null);
   const face = useRef<HTMLDivElement>(null);
@@ -193,7 +195,7 @@ export function HighlightCase({
       gsap.set(panel, { transformOrigin: "100% 100%" });
       gsap.fromTo(
         panel,
-        { xPercent: 22, yPercent: 28, rotate: 11 },
+        { xPercent: 42, yPercent: 52, rotate: 12 },
         {
           xPercent: 0,
           yPercent: 0,
@@ -201,7 +203,7 @@ export function HighlightCase({
           ease: "none",
           scrollTrigger: {
             trigger: el,
-            start: "top 92%",
+            start: "top bottom",
             end: "top top",
             scrub: 0.55,
             invalidateOnRefresh: true,
@@ -223,7 +225,7 @@ export function HighlightCase({
   return (
     <section
       ref={root}
-      className="relative h-[100svh]"
+      className={`relative h-[100svh] overflow-hidden${solid ? " bg-ink" : ""}`}
       style={{ zIndex: 20 + index }}
     >
       <div

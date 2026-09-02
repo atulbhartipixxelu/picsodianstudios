@@ -1,8 +1,8 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 
 export function revalidateSite() {
-  revalidateTag("works");
-  revalidateTag("studio");
+  revalidateTag("works", "max");
+  revalidateTag("studio", "max");
   revalidatePath("/", "layout");
   revalidatePath("/");
   revalidatePath("/work");
