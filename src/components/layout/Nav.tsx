@@ -176,9 +176,7 @@ export function Nav() {
             <Logo
               variant="header"
               className={cn(
-                pathname === "/"
-                  ? "h-16 md:h-20 lg:h-[5.75rem]"
-                  : "h-12 md:h-14 lg:h-16",
+                "h-12 md:h-14 lg:h-16",
                 isLightNav && "!mix-blend-normal brightness-0",
               )}
             />
@@ -215,7 +213,7 @@ export function Nav() {
                     prefetch
                     data-cursor={link.label}
                     className={cn(
-                      "px-2.5 py-2 text-[12px] tracking-[0.16em] uppercase transition-colors duration-300",
+                      "px-2.5 py-2 text-[13px] tracking-[0.16em] uppercase transition-colors duration-300 md:text-[14px]",
                       isLightNav
                         ? active
                           ? "text-ink"
