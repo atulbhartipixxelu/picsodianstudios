@@ -76,10 +76,23 @@ export function CustomCursor() {
       my = e.clientY;
 
       const node = e.target as HTMLElement | null;
-      if (node?.closest('[data-cursor-surface="paper"]')) {
+      const html = document.documentElement;
+      const surfaceEl = node?.closest("[data-cursor-surface]");
+      const surface = surfaceEl?.getAttribute("data-cursor-surface");
+      const onBlueOverlay = html.classList.contains("is-filters-lock");
+      const onLight =
+        !onBlueOverlay &&
+        (surface === "paper" ||
+          surface === "sheet" ||
+          (!surface &&
+            (html.classList.contains("is-work") ||
+              html.classList.contains("is-contact") ||
+              Boolean(node?.closest(".bg-paper")))));
+
+      if (onBlueOverlay || surface === "ink") {
+        rootEl.dataset.surface = "ink";
+      } else if (onLight) {
         rootEl.dataset.surface = "paper";
-      } else if (node?.closest('[data-cursor-surface="sheet"]')) {
-        rootEl.dataset.surface = "sheet";
       } else {
         rootEl.dataset.surface = "ink";
       }
@@ -96,22 +109,20 @@ export function CustomCursor() {
         const noMagnet = hover.hasAttribute("data-no-magnet");
         const rect = hover.getBoundingClientRect();
         const tooLarge = rect.width * rect.height > MAX_MAGNET_AREA;
+        const text = hover.getAttribute("data-cursor") || "Open";
 
-        if (tooLarge) {
-          magnet = null;
-          rootEl.dataset.state = "default";
-          labelEl.textContent = "";
-          return;
-        }
-
-        magnet = noMagnet ? null : rect;
-        labelEl.textContent = hover.getAttribute("data-cursor") || "Open";
+        magnet = noMagnet || tooLarge ? null : rect;
+        const words = text.trim().split(/\s+/);
+        labelEl.textContent =
+          words.length >= 3 ? `${words[0]}\n${words.slice(1).join(" ")}` : text;
         rootEl.dataset.state = "hover";
+        rootEl.dataset.long = text.length > 10 ? "1" : "0";
         return;
       }
 
       magnet = null;
       rootEl.dataset.state = "default";
+      rootEl.dataset.long = "0";
       labelEl.textContent = "";
     };
 

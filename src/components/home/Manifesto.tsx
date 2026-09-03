@@ -9,7 +9,6 @@ import { SafeImage } from "@/components/ui/SafeImage";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
-const CRAFT = ["2D", "Motion", "Film", "Character"];
 const LINES = ["Work that", "stays with", "you."];
 
 type Props = {
@@ -119,7 +118,9 @@ export function Manifesto({ still }: Props) {
   return (
     <section
       ref={root}
-      className="studio-block relative z-10 overflow-hidden bg-ink text-paper"
+      data-cursor-surface="paper"
+      data-nav-surface="paper"
+      className="studio-block relative z-10 overflow-hidden bg-paper text-ink"
     >
       <div className="studio-fx" aria-hidden>
         <div className="studio-fx-wash" />
@@ -139,9 +140,9 @@ export function Manifesto({ still }: Props) {
         <div className="studio-top" data-in>
           <div className="flex items-center gap-3">
             <span className="crosshair" aria-hidden />
-            <p className="micro text-paper/80">03 / Who we are</p>
+            <p className="micro text-ink/70">03 / Who we are</p>
           </div>
-          <p className="micro hidden text-paper/50 sm:block">{time}</p>
+          <p className="micro hidden text-ink/45 sm:block">{time}</p>
         </div>
 
         <div className="studio-grid">
@@ -149,12 +150,7 @@ export function Manifesto({ still }: Props) {
             <h2 className="studio-title">
               {LINES.map((line) => (
                 <span key={line} className="studio-clip">
-                  <span
-                    data-line
-                    className={line === "you." ? "studio-title-mark" : undefined}
-                  >
-                    {line}
-                  </span>
+                  <span data-line>{line}</span>
                 </span>
               ))}
             </h2>
@@ -165,7 +161,7 @@ export function Manifesto({ still }: Props) {
               should hit with energy, then linger.
             </p>
 
-            <div data-in className="studio-pulse">
+            <div data-in className="studio-pulse" aria-hidden>
               <span>24 fps</span>
               <span>∞ frames</span>
               <span>01 vision</span>
@@ -178,7 +174,6 @@ export function Manifesto({ still }: Props) {
               data-cursor="About"
             >
               Read the full story
-              <span aria-hidden>→</span>
             </Link>
           </div>
 
@@ -225,12 +220,6 @@ export function Manifesto({ still }: Props) {
                 </p>
               </div>
             </div>
-
-            <ul className="studio-crafts">
-              {CRAFT.map((chip) => (
-                <li key={chip}>{chip}</li>
-              ))}
-            </ul>
           </div>
         </div>
       </div>

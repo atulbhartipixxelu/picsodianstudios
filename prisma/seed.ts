@@ -32,6 +32,7 @@ async function main() {
       email: "creatives@picsodianstudios.com",
       instagram: "https://instagram.com/picsodianstudios",
       twitter: "",
+      linkedin: "https://www.linkedin.com/company/picsodianstudios",
       vimeo: "",
       about: ABOUT,
     },

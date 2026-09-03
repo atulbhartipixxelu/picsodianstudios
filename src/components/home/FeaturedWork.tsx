@@ -62,17 +62,17 @@ export function FeaturedWork({ work }: { work: PublicWork | null }) {
           <p className="featured-copy mt-6 max-w-xl">
             {work.synopsis}
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-8 flex flex-wrap gap-x-8 gap-y-4">
             <Link
               href={`/work/${work.slug}`}
               data-cursor="Play"
-              className="border border-blue bg-blue px-6 py-3 text-paper micro"
+              className="ps-cta ps-cta--paper"
             >
               Play case study
             </Link>
             <Link
               href="/work"
-              className="border border-paper/30 px-6 py-3 micro hover:border-blue hover:text-blue"
+              className="ps-cta ps-cta--paper"
               data-cursor="Index"
             >
               Full index

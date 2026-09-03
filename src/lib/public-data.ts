@@ -10,6 +10,7 @@ export type PublicStudio = {
   email: string;
   instagram: string;
   twitter: string;
+  linkedin: string;
   vimeo: string;
 };
 
@@ -36,6 +37,7 @@ export const getPublicStudio = unstable_cache(
       email: settings?.email ?? "",
       instagram: settings?.instagram ?? "",
       twitter: settings?.twitter ?? "",
+      linkedin: settings?.linkedin ?? "",
       vimeo: settings?.vimeo ?? "",
     };
   },

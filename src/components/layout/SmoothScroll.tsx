@@ -49,6 +49,31 @@ function LenisScrollBridge() {
   }, [pathname, lenis]);
 
   useEffect(() => {
+    if (!lenis) return;
+
+    const sync = () => {
+      const html = document.documentElement;
+      if (
+        html.classList.contains("is-nav-open") ||
+        html.classList.contains("is-filters-lock")
+      ) {
+        lenis.stop();
+      } else {
+        lenis.start();
+      }
+    };
+
+    const obs = new MutationObserver(sync);
+    obs.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    sync();
+
+    return () => obs.disconnect();
+  }, [lenis]);
+
+  useEffect(() => {
     const refresh = () => ScrollTrigger.refresh();
     window.addEventListener("ps:ready", refresh);
     window.addEventListener("resize", refresh);

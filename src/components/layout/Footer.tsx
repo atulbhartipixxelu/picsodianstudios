@@ -4,16 +4,10 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Logo } from "./Logo";
+import { NAV_LINKS } from "@/lib/nav-links";
+import { SOCIAL_FALLBACK, hrefOr } from "@/lib/studio-contact";
 
 gsap.registerPlugin(ScrollTrigger);
-
-const LINKS = [
-  { href: "/", label: "Home" },
-  { href: "/work", label: "Work" },
-  { href: "/about", label: "About" },
-  { href: "/contact", label: "Contact" },
-];
 
 const MARQUEE = [
   "Picsodian Studios",
@@ -23,19 +17,6 @@ const MARQUEE = [
   "Film",
   "Character",
 ];
-
-const SOCIAL_FALLBACK = {
-  instagram: "https://www.instagram.com/picsodianstudios",
-  twitter: "https://x.com/picsodianstudios",
-  vimeo: "https://vimeo.com/picsodianstudios",
-};
-
-function hrefOr(value: string, fallback: string) {
-  const next = value.trim();
-  if (!next) return fallback;
-  if (/^https?:\/\//i.test(next)) return next;
-  return `https://${next.replace(/^\/+/, "")}`;
-}
 
 function InstagramIcon() {
   return (
@@ -64,6 +45,14 @@ function XIcon() {
   );
 }
 
+function LinkedInIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden className="h-[15px] w-[15px]" fill="currentColor">
+      <path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12ZM7.12 20.45H3.56V9h3.56v11.45ZM22.23 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.23 0Z" />
+    </svg>
+  );
+}
+
 function VimeoIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden className="h-[16px] w-[16px]" fill="currentColor">
@@ -79,13 +68,21 @@ export function Footer() {
   useEffect(() => {
     fetch("/api/studio")
       .then((res) => res.json())
-      .then((data: { instagram?: string; twitter?: string; vimeo?: string }) => {
-        setSocials({
-          instagram: hrefOr(data.instagram ?? "", SOCIAL_FALLBACK.instagram),
-          twitter: hrefOr(data.twitter ?? "", SOCIAL_FALLBACK.twitter),
-          vimeo: hrefOr(data.vimeo ?? "", SOCIAL_FALLBACK.vimeo),
-        });
-      })
+      .then(
+        (data: {
+          instagram?: string;
+          twitter?: string;
+          linkedin?: string;
+          vimeo?: string;
+        }) => {
+          setSocials({
+            instagram: hrefOr(data.instagram ?? "", SOCIAL_FALLBACK.instagram),
+            twitter: hrefOr(data.twitter ?? "", SOCIAL_FALLBACK.twitter),
+            linkedin: hrefOr(data.linkedin ?? "", SOCIAL_FALLBACK.linkedin),
+            vimeo: hrefOr(data.vimeo ?? "", SOCIAL_FALLBACK.vimeo),
+          });
+        },
+      )
       .catch(() => {});
   }, []);
 
@@ -115,10 +112,22 @@ export function Footer() {
     return () => ctx.revert();
   }, []);
 
+  const socialItems = [
+    {
+      href: socials.instagram,
+      label: "Instagram",
+      icon: <InstagramIcon />,
+    },
+    { href: socials.twitter, label: "X", icon: <XIcon /> },
+    { href: socials.linkedin, label: "LinkedIn", icon: <LinkedInIcon /> },
+    { href: socials.vimeo, label: "Vimeo", icon: <VimeoIcon /> },
+  ] as const;
+
   return (
     <footer
       ref={root}
       data-cursor-surface="paper"
+      data-nav-surface="paper"
       className="relative z-50 overflow-x-clip overflow-y-visible bg-paper text-ink"
     >
       <div className="px-4 pt-16 pb-6 md:px-7 md:pt-24">
@@ -127,99 +136,41 @@ export function Footer() {
           <p className="micro hidden sm:block">Picsodian / 2026</p>
         </div>
 
-        <div className="grid items-start gap-10 sm:grid-cols-2 lg:grid-cols-12 lg:gap-12">
-          <Link
-            href="/contact"
-            data-cursor="Enquire"
-            className="group sm:col-span-2 lg:col-span-6"
-          >
-            <h2 className="display-huge foot-cta">
-              <span className="block overflow-x-visible overflow-y-hidden pb-[0.08em] pr-[0.2em]">
-                <span
-                  data-foot
-                  className="block text-[clamp(1.6rem,4.4vw,3.4rem)]"
-                >
-                  Let&apos;s make it
+        <Link href="/contact" data-cursor="Enquire" className="group block max-w-4xl">
+          <h2 className="display-huge foot-cta">
+            <span className="block overflow-x-visible overflow-y-hidden pb-[0.08em] pr-[0.2em]">
+              <span
+                data-foot
+                className="block text-[clamp(1.6rem,4.4vw,3.4rem)]"
+              >
+                Let&apos;s make it
+              </span>
+            </span>
+            <span className="block overflow-x-visible overflow-y-hidden pb-[0.12em] pr-[0.28em]">
+              <span
+                data-foot
+                className="foot-stroke block whitespace-nowrap text-[clamp(2.1rem,7.4vw,7rem)] leading-[0.95]"
+              >
+                undeniably
+              </span>
+            </span>
+            <span className="block overflow-x-visible overflow-y-hidden pb-[0.08em] pr-[0.2em]">
+              <span
+                data-foot
+                className="relative block text-[clamp(2.3rem,8vw,7.6rem)] leading-[0.9]"
+              >
+                cool
+                <span className="inline-block origin-center transition-transform duration-500 group-hover:translate-x-3">
+                  .
                 </span>
               </span>
-              <span className="block overflow-x-visible overflow-y-hidden pb-[0.12em] pr-[0.28em]">
-                <span
-                  data-foot
-                  className="foot-stroke block whitespace-nowrap text-[clamp(2.1rem,7.4vw,7rem)] leading-[0.95]"
-                >
-                  undeniably
-                </span>
-              </span>
-              <span className="block overflow-x-visible overflow-y-hidden pb-[0.08em] pr-[0.2em]">
-                <span
-                  data-foot
-                  className="relative block text-[clamp(2.3rem,8vw,7.6rem)] leading-[0.9]"
-                >
-                  cool
-                  <span className="inline-block origin-center transition-transform duration-500 group-hover:translate-x-3">
-                    .
-                  </span>
-                </span>
-              </span>
-            </h2>
-            <p className="mt-6 max-w-sm text-sm leading-relaxed text-ink/75">
-              Film, motion, character — if it belongs on a screen, we&apos;ll make
-              it hit. Drop us a line.
-            </p>
-          </Link>
-
-          <div className="foot-dir-block lg:col-span-3">
-            <p className="foot-dir-title">Quick links</p>
-            <ul>
-              {LINKS.map((link, i) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    data-cursor={link.label}
-                    data-no-magnet
-                    className="foot-dir-row"
-                  >
-                    <span className="foot-dir-idx">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <span className="foot-dir-name">{link.label}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="foot-dir-block lg:col-span-3">
-            <p className="foot-dir-title">Social</p>
-            <ul>
-              {(
-                [
-                  {
-                    href: socials.instagram,
-                    label: "Instagram",
-                    icon: <InstagramIcon />,
-                  },
-                  { href: socials.twitter, label: "X", icon: <XIcon /> },
-                  { href: socials.vimeo, label: "Vimeo", icon: <VimeoIcon /> },
-                ] as const
-              ).map((item) => (
-                <li key={item.label}>
-                  <a
-                    href={item.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    data-cursor={item.label}
-                    data-no-magnet
-                    className="foot-dir-row"
-                  >
-                    <span className="foot-dir-ico">{item.icon}</span>
-                    <span className="foot-dir-name">{item.label}</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
+            </span>
+          </h2>
+          <p className="mt-6 max-w-sm text-sm leading-relaxed text-ink/75">
+            Film, motion, character — if it belongs on a screen, we&apos;ll make
+            it hit. Drop us a line.
+          </p>
+        </Link>
 
         <div className="mt-16 overflow-hidden border-y border-ink/20 py-4">
           <div className="animate-marquee flex w-max gap-10">
@@ -235,25 +186,23 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-          <div>
-            <Link
-              href="/"
-              data-cursor="Home"
-              className="inline-block transition-transform duration-300 hover:scale-105"
-            >
-              <Logo variant="wordmark" className="h-16 w-auto md:h-20" />
-            </Link>
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-ink/80">
-              Creative visual studio. Motion, film, character, and worlds built
-              to hit the screen hard.
-            </p>
-          </div>
-          <div className="micro space-y-2 md:text-right">
+        <div className="foot-bottom">
+          <nav className="foot-bottom__links" aria-label="Quick links">
+            {NAV_LINKS.map((link, i) => (
+              <span key={link.href} className="foot-bottom__item">
+                {i > 0 ? <span className="foot-bottom__slash">/</span> : null}
+                <Link href={link.href} data-cursor={link.label} data-no-magnet>
+                  {link.label}
+                </Link>
+              </span>
+            ))}
+          </nav>
+
+          <div className="foot-bottom__copy">
             <a
               href="mailto:creatives@picsodianstudios.com"
               data-cursor="Mail"
-              className="hover:underline"
+              className="foot-bottom__mail"
             >
               creatives@picsodianstudios.com
             </a>
@@ -263,6 +212,25 @@ export function Footer() {
               All rights reserved.
             </p>
           </div>
+
+          <nav className="foot-bottom__social" aria-label="Social">
+            {socialItems.map((item, i) => (
+              <span key={item.label} className="foot-bottom__item">
+                {i > 0 ? <span className="foot-bottom__slash">/</span> : null}
+                <a
+                  href={item.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  data-cursor={item.label}
+                  data-no-magnet
+                  className="foot-bottom__social-link"
+                >
+                  <span className="foot-bottom__ico">{item.icon}</span>
+                  <span>{item.label}</span>
+                </a>
+              </span>
+            ))}
+          </nav>
         </div>
       </div>
     </footer>

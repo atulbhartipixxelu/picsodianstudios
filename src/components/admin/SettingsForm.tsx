@@ -9,6 +9,7 @@ type Settings = {
   email: string;
   instagram: string;
   twitter: string;
+  linkedin: string;
   vimeo: string;
   about: string;
 };
@@ -94,6 +95,14 @@ export function SettingsForm({ initial }: { initial: Settings }) {
           <input
             value={values.twitter}
             onChange={(e) => patch("twitter", e.target.value)}
+            className="field"
+          />
+        </label>
+        <label className="grid gap-2">
+          <span className="micro text-mist">LinkedIn</span>
+          <input
+            value={values.linkedin}
+            onChange={(e) => patch("linkedin", e.target.value)}
             className="field"
           />
         </label>

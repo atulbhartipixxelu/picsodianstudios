@@ -1,97 +1,148 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { PublicWork } from "@/lib/utils";
+import { useLenis } from "lenis/react";
 import { PageReveal } from "@/components/ui/PageReveal";
 import { SafeImage } from "@/components/ui/SafeImage";
-import { SelectedWork } from "@/components/work/SelectedWork";
+import { isDirectVideo } from "@/lib/video";
 
-const FILTERS = ["All", "2D", "Motion", "3D"] as const;
-const TITLE = "THE WORK";
+const FILTER_EASE = [0.14, 1, 0.34, 1] as const;
+const SPAN_CYCLE = [5, 4, 3, 3, 3, 9, 4, 5, 3, 3, 3, 9] as const;
 
-function useReelCount(target: number) {
-  const [n, setN] = useState(0);
+function WorkTile({
+  work,
+  index,
+  span,
+}: {
+  work: PublicWork;
+  index: number;
+  span: number;
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const clip =
+    work.videoUrl && isDirectVideo(work.videoUrl) ? work.videoUrl : null;
+  const still = work.heroImage || work.thumbnail;
+  const credit = work.director || work.client || "Studio";
+  const blurb = work.synopsis || work.overview || "";
 
-  useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setN(target);
-      return;
-    }
+  function play() {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = true;
+    void video.play().catch(() => {});
+  }
 
-    setN(0);
-    if (target <= 0) return;
-
-    let current = 0;
-    const id = window.setInterval(() => {
-      current += 1;
-      setN(current);
-      if (current >= target) window.clearInterval(id);
-    }, 55);
-
-    return () => window.clearInterval(id);
-  }, [target]);
-
-  return n;
-}
-
-function WorkMarquee({ titles }: { titles: string[] }) {
-  const wrapRef = useRef<HTMLDivElement>(null);
-  const groupRef = useRef<HTMLDivElement>(null);
-  const [repeat, setRepeat] = useState(8);
-  const [duration, setDuration] = useState(22);
-  const seedKey = titles.join("|") || "Picsodian Studios";
-  const seed = useMemo(
-    () => (titles.length ? titles : ["Picsodian Studios"]),
-    [seedKey],
-  );
-
-  useLayoutEffect(() => {
-    const wrap = wrapRef.current;
-    const group = groupRef.current;
-    if (!wrap || !group) return;
-
-    const fit = () => {
-      const cycle = group.scrollWidth / Math.max(repeat, 1);
-      if (cycle <= 0) return;
-      const next = Math.max(6, Math.ceil((wrap.offsetWidth * 1.25) / cycle));
-      if (next !== repeat) setRepeat(next);
-      setDuration(Math.max(16, group.scrollWidth / 70));
-    };
-
-    fit();
-    const ro = new ResizeObserver(fit);
-    ro.observe(wrap);
-    return () => ro.disconnect();
-  }, [repeat, seedKey]);
-
-  const items = Array.from({ length: repeat }, () => seed).flat();
+  function stop() {
+    const video = videoRef.current;
+    if (!video) return;
+    video.pause();
+    video.currentTime = 0;
+  }
 
   return (
-    <div ref={wrapRef} className="work-marquee" aria-hidden>
-      <div
-        className="work-marquee-track"
-        style={{ animationDuration: `${duration}s` }}
+    <li className={cn("work-tile", `work-tile--${span}`)}>
+      <Link
+        href={`/work/${work.slug}`}
+        data-cursor="View case study"
+        className="work-tile-link"
+        onMouseEnter={play}
+        onMouseLeave={stop}
+        onFocus={play}
+        onBlur={stop}
       >
-        {[0, 1].map((copy) => (
-          <div
-            key={copy}
-            ref={copy === 0 ? groupRef : undefined}
-            className="work-marquee-group"
-          >
-            {items.map((title, i) => (
-              <span key={`${copy}-${i}`} className="work-marquee-item">
-                {title}
-                <span className="work-marquee-dot" />
-              </span>
-            ))}
-          </div>
-        ))}
+        <div className="work-tile-top">
+          <p>
+            <span className="work-tile-dot" />
+            <em>Type</em>
+            <i>/</i>
+            <strong>
+              {work.selected ? "Selected / " : ""}
+              {work.category || "Work"}
+            </strong>
+          </p>
+          <p>
+            <span className="work-tile-dot" />
+            <em>{work.director ? "Director" : "Client"}</em>
+            <i>/</i>
+            <strong>{credit}</strong>
+          </p>
+        </div>
+
+        <figure className="work-tile-fig">
+          <SafeImage src={still} alt={work.title} className="work-tile-still" />
+          {clip ? (
+            <video
+              ref={videoRef}
+              className="work-tile-clip"
+              src={clip}
+              poster={still}
+              muted
+              loop
+              playsInline
+              preload="none"
+            />
+          ) : null}
+        </figure>
+
+        <div className="work-tile-bot">
+          <p className="work-tile-title">{work.title}</p>
+          {blurb ? <p className="work-tile-lede">{blurb}</p> : null}
+          <p className="work-tile-no">
+            {String(index + 1).padStart(2, "0")}
+            <em>/</em>
+            {String(work.year).slice(-2)}
+          </p>
+        </div>
+      </Link>
+    </li>
+  );
+}
+
+function FilterShot({
+  work,
+  index,
+}: {
+  work: PublicWork;
+  index: number;
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const clip =
+    work.videoUrl && isDirectVideo(work.videoUrl) ? work.videoUrl : null;
+  const still = work.heroImage || work.thumbnail;
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = true;
+    void video.play().catch(() => {});
+    return () => {
+      video.pause();
+    };
+  }, [clip]);
+
+  return (
+    <figure className={cn("work-filter-shot", `is-${index}`)}>
+      <div className="work-filter-shot-media">
+        <SafeImage src={still} alt="" className="work-filter-shot-img" />
+        {clip ? (
+          <video
+            ref={videoRef}
+            className="work-filter-shot-clip"
+            src={clip}
+            poster={still}
+            muted
+            loop
+            playsInline
+            autoPlay
+          />
+        ) : null}
       </div>
-    </div>
+      <figcaption>{work.title}</figcaption>
+    </figure>
   );
 }
 
@@ -102,197 +153,182 @@ export function WorkIndex({
   works: PublicWork[];
   selected: PublicWork | null;
 }) {
-  const router = useRouter();
+  const filters = useMemo(() => {
+    const cats = [...new Set(works.map((work) => work.category).filter(Boolean))];
+    return ["All", ...cats];
+  }, [works]);
+
   const [filter, setFilter] = useState("All");
-  const [traysOpen, setTraysOpen] = useState(false);
-  const [activeId, setActiveId] = useState<string | null>(selected?.id ?? null);
+  const [tray, setTray] = useState(false);
+  const lenis = useLenis();
+
+  const ordered = useMemo(() => {
+    if (!selected) return works;
+    return [selected, ...works.filter((work) => work.id !== selected.id)];
+  }, [works, selected]);
 
   const visible = useMemo(() => {
-    if (filter === "All") return works;
-    return works.filter((w) => w.category === filter);
-  }, [filter, works]);
+    if (filter === "All") return ordered;
+    return ordered.filter((work) => work.category === filter);
+  }, [filter, ordered]);
 
-  const active = visible.find((w) => w.id === activeId) ?? visible[0] ?? null;
-  const reel = useReelCount(visible.length);
+  const filterCount = (item: string) =>
+    item === "All"
+      ? works.length
+      : works.filter((work) => work.category === item).length;
+
+  const panelFilters = useMemo(
+    () => [filter, ...filters.filter((item) => item !== filter)],
+    [filter, filters],
+  );
+
+  const previewWorks = ordered.slice(0, 2);
+
+  function closeTray() {
+    setTray(false);
+  }
+
+  function pickFilter(item: string) {
+    setFilter(item);
+    setTray(false);
+  }
 
   useEffect(() => {
-    const pick =
-      visible.find((w) => w.id === selected?.id) ?? visible[0] ?? null;
-    setActiveId(pick?.id ?? null);
-  }, [filter, selected?.id]);
+    const html = document.documentElement;
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") setTray(false);
+    }
 
-  const marqueeTitles = works.map((w) => w.title).filter(Boolean);
+    if (tray) {
+      lenis?.stop();
+      html.classList.add("is-filters-lock");
+      html.style.overflow = "hidden";
+      document.body.style.overflow = "hidden";
+      window.addEventListener("keydown", onKey);
+      return () => {
+        lenis?.start();
+        html.classList.remove("is-filters-lock");
+        html.style.overflow = "";
+        document.body.style.overflow = "";
+        window.removeEventListener("keydown", onKey);
+      };
+    }
+
+    lenis?.start();
+    html.classList.remove("is-filters-lock");
+    html.style.overflow = "";
+    document.body.style.overflow = "";
+  }, [tray, lenis]);
 
   return (
     <PageReveal>
-      <div className="relative z-10 min-h-screen bg-ink text-paper">
-        <section className="work-hero">
-          <div className="work-hero-top">
-            <p className="micro text-signal">Index / Work</p>
-            <motion.button
-              type="button"
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.45, duration: 0.55 }}
-              onClick={() => {
-                setFilter("All");
-                setTraysOpen(false);
-              }}
-              className="micro text-mist hover:text-blue"
-            >
-              Reset
-            </motion.button>
-          </div>
-
-          <div className="work-hero-row">
-            <h1 className="work-hero-title">
-              {TITLE.split("").map((ch, i) => (
-                <span
-                  key={`${ch}-${i}`}
-                  className="work-gate"
-                  style={{ animationDelay: `${0.08 + i * 0.06}s` }}
-                >
-                  <span>{ch === " " ? "\u00A0" : ch}</span>
-                </span>
-              ))}
-              <span
-                className="work-gate work-hero-count"
-                style={{ animationDelay: "0.72s" }}
-              >
-                <span> [{String(reel).padStart(2, "0")}]</span>
-              </span>
-            </h1>
-            <motion.p
-              className="work-hero-lede"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.85, duration: 0.6 }}
-            >
-              Pictures with a pulse. Hover a title, open the cut.
-            </motion.p>
-          </div>
-        </section>
-
-        {selected ? <SelectedWork work={selected} /> : null}
-
-        <WorkMarquee titles={marqueeTitles} />
-
-        <div className="work-trays">
-          <p className="micro text-mist">Filter / Tray</p>
-          <div className="work-trays-row">
-            {FILTERS.map((item, i) => {
-              if (item !== "All" && !traysOpen) return null;
-
-              const count =
-                item === "All"
-                  ? works.length
-                  : works.filter((w) => w.category === item).length;
-              const on = filter === item;
-
-              return (
-                <motion.button
-                  key={item}
-                  type="button"
-                  onClick={() => {
-                    setFilter(item);
-                    if (item === "All") setTraysOpen(true);
-                  }}
-                  data-cursor="Filter"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 8 }}
-                  transition={{ delay: item === "All" ? 0 : 0.04 * i, duration: 0.28 }}
-                  className={cn("work-tray", on && "is-on")}
-                >
-                  {on ? (
-                    <motion.span
-                      layoutId="work-tray-fill"
-                      className="work-tray-fill"
-                      transition={{ type: "spring", stiffness: 380, damping: 34 }}
-                    />
-                  ) : null}
-                  <span className="work-tray-name">{item}</span>
-                  <span className="work-tray-count">
-                    {String(count).padStart(2, "0")}
-                  </span>
-                </motion.button>
-              );
-            })}
-          </div>
-        </div>
-
-        <AnimatePresence mode="wait">
-          <motion.section
-            key={`board-${filter}`}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.35 }}
-            className="work-board"
+      <div
+        className={cn("work-page", tray && "is-filters-open")}
+        data-cursor-surface="paper"
+      >
+        <div className="work-filters">
+          <button
+            type="button"
+            data-cursor="Filter"
+            className="work-filters-toggle"
+            onClick={() => setTray((open) => !open)}
+            aria-expanded={tray}
+            aria-controls="work-filter-panel"
           >
-            {visible.length === 0 || !active ? (
-              <p className="px-4 py-24 text-center text-sm text-mist md:px-7">
-                No cuts in this tray.
-              </p>
-            ) : (
-              <>
-                <div className="work-board-stage">
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={active.id}
-                      initial={{ opacity: 0, scale: 1.04 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.98 }}
-                      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-                      className="work-board-frame"
-                    >
-                      <SafeImage
-                        src={active.thumbnail || active.heroImage}
-                        alt={active.title}
-                        className="work-board-still"
-                      />
-                      <span className="work-scan" />
-                      <div className="work-board-meta">
-                        <p className="micro text-paper/80">
-                          {active.category} / {active.year}
-                        </p>
-                        <p className="work-board-name">{active.title}</p>
-                      </div>
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
+            {filter}
+            <small>[{String(filterCount(filter)).padStart(2, "0")}]</small>
+            <svg
+              className="work-filters-arrow"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="currentColor"
+              viewBox="0 0 75 87"
+              aria-hidden
+            >
+              <path d="M74.25 43.5 0 86.366V.631z" />
+            </svg>
+          </button>
 
-                <ol className="work-board-list">
-                  {visible.map((work, i) => {
-                    const on = work.id === active.id;
+          <AnimatePresence>
+            {tray ? (
+              <motion.div
+                key="work-filter-panel"
+                id="work-filter-panel"
+                className="work-filters-panel"
+                initial={{ x: "-10%", y: "115%", rotate: 8 }}
+                animate={{ x: 0, y: 0, rotate: 0 }}
+                exit={{ x: "-10%", y: "115%", rotate: 8 }}
+                transition={{ duration: 0.8, ease: FILTER_EASE }}
+              >
+                <ul className="work-filters-list">
+                  {panelFilters.map((item, i) => {
+                    const count = filterCount(item);
                     return (
-                      <li key={work.id}>
-                        <Link
-                          href={`/work/${work.slug}`}
-                          data-cursor="View"
-                          className={cn("work-board-row", on && "is-on")}
-                          onMouseEnter={() => setActiveId(work.id)}
-                          onFocus={() => setActiveId(work.id)}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            router.push(`/work/${work.slug}`);
-                          }}
+                      <li
+                        key={item}
+                        className={cn("work-filters-item", i === 0 && "is-ghost")}
+                      >
+                        <button
+                          type="button"
+                          data-cursor="Filter"
+                          className="work-filters-name"
+                          onClick={() => pickFilter(item)}
+                          tabIndex={i === 0 ? -1 : 0}
                         >
-                          <span className="work-board-idx">
-                            {String(i + 1).padStart(2, "0")}
-                          </span>
-                          <span className="work-board-title">{work.title}</span>
-                          <span className="work-board-cat">{work.category}</span>
-                          <span className="work-board-year">{work.year}</span>
-                        </Link>
+                          {item}
+                          <small>[{String(count).padStart(2, "0")}]</small>
+                        </button>
+                        {i < panelFilters.length - 1 ? (
+                          <span className="work-filters-slash">/</span>
+                        ) : null}
                       </li>
                     );
                   })}
-                </ol>
-              </>
-            )}
-          </motion.section>
-        </AnimatePresence>
+                </ul>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+
+          {tray ? (
+            <button
+              type="button"
+              data-cursor="Close"
+              className="work-filters-close"
+              onClick={closeTray}
+            >
+              <span />
+              Close
+            </button>
+          ) : null}
+        </div>
+
+        <div className="work-filters-acetate" aria-hidden />
+
+        {tray && previewWorks.length > 0 ? (
+          <div className="work-filter-back" aria-hidden>
+            <div className="work-filter-row">
+              {previewWorks.map((work, i) => (
+                <FilterShot key={work.id} work={work} index={i} />
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        <div className="work-stage">
+          {visible.length === 0 ? (
+            <p className="work-empty">No cuts in this tray.</p>
+          ) : (
+            <ul className="work-grid">
+              {visible.map((work, i) => (
+                <WorkTile
+                  key={work.id}
+                  work={work}
+                  index={i}
+                  span={SPAN_CYCLE[i % SPAN_CYCLE.length]}
+                />
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
     </PageReveal>
   );

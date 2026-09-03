@@ -49,11 +49,7 @@ export default async function HomePage() {
 
       <Manifesto still={heroWork?.thumbnail} />
       <FeaturedWork work={heroWork} />
-      <HomeClose
-        stills={(featured.length ? featured : publicWorks)
-          .slice(0, 3)
-          .map((w) => w.thumbnail)}
-      />
+      <HomeClose />
     </>
   );
 }

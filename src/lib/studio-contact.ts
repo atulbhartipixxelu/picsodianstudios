@@ -6,6 +6,7 @@ export const STUDIO_PHONE_HREF = `mailto:${STUDIO_EMAIL}?subject=Call%20request`
 export const SOCIAL_FALLBACK = {
   instagram: "https://www.instagram.com/picsodianstudios",
   twitter: "https://x.com/picsodianstudios",
+  linkedin: "https://www.linkedin.com/company/picsodianstudios",
   vimeo: "https://vimeo.com/picsodianstudios",
 };
 

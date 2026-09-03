@@ -18,6 +18,7 @@ export default async function SettingsPage() {
           email: settings?.email ?? "",
           instagram: settings?.instagram ?? "",
           twitter: settings?.twitter ?? "",
+          linkedin: settings?.linkedin ?? "",
           vimeo: settings?.vimeo ?? "",
           about: settings?.about ?? "",
         }}

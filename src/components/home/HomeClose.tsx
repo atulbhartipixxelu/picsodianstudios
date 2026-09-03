@@ -1,12 +1,12 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SafeImage } from "@/components/ui/SafeImage";
-import { CollectiveStage } from "@/components/ui/CollectiveStage";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -16,22 +16,8 @@ const LINES = [
   { text: "Tell powerful stories.", accent: true },
 ];
 
-export function HomeClose({ stills = [] }: { stills?: string[] }) {
+export function HomeClose() {
   const root = useRef<HTMLElement>(null);
-  const spot = useRef<HTMLDivElement>(null);
-  const [time, setTime] = useState("00:00:00:00");
-
-  useEffect(() => {
-    let frame = 0;
-    const id = window.setInterval(() => {
-      frame = (frame + 1) % 24;
-      const total = Math.floor(Date.now() / 1000) % 3600;
-      const m = String(Math.floor(total / 60)).padStart(2, "0");
-      const s = String(total % 60).padStart(2, "0");
-      setTime(`04:${m}:${s}:${String(frame).padStart(2, "0")}`);
-    }, 1000 / 24);
-    return () => window.clearInterval(id);
-  }, []);
 
   useGSAP(
     () => {
@@ -47,72 +33,40 @@ export function HomeClose({ stills = [] }: { stills?: string[] }) {
         {
           yPercent: 0,
           opacity: 1,
-          duration: 0.9,
+          duration: 0.95,
           stagger: 0.1,
           ease: "power4.out",
-          scrollTrigger: { trigger: el, start: "top 74%", once: true },
+          scrollTrigger: { trigger: el, start: "top 72%", once: true },
         },
       );
 
       gsap.from(el.querySelectorAll("[data-in]"), {
-        y: 18,
+        y: 22,
         opacity: 0,
-        duration: 0.7,
-        stagger: 0.07,
-        delay: 0.2,
+        duration: 0.75,
+        stagger: 0.08,
+        delay: 0.15,
         ease: "power3.out",
-        scrollTrigger: { trigger: el, start: "top 74%", once: true },
+        scrollTrigger: { trigger: el, start: "top 72%", once: true },
       });
 
-      gsap.from(el.querySelector(".close-stage"), {
-        x: 40,
-        opacity: 0,
-        duration: 1,
-        ease: "power4.out",
-        scrollTrigger: { trigger: el, start: "top 74%", once: true },
-      });
-
-      const iris = el.querySelector<HTMLElement>("[data-iris]");
-      if (iris && !reduced) {
+      const media = el.querySelector<HTMLElement>("[data-close-media]");
+      if (media && !reduced) {
         gsap.fromTo(
-          iris,
-          { rotate: -12, scale: 0.92 },
+          media,
+          { scale: 1.08 },
           {
-            rotate: 8,
-            scale: 1.06,
+            scale: 1,
             ease: "none",
             scrollTrigger: {
               trigger: el,
               start: "top bottom",
               end: "bottom top",
-              scrub: 1.2,
+              scrub: 1.1,
             },
           },
         );
       }
-
-      const lamp = spot.current;
-      if (lamp) {
-        const box = el.getBoundingClientRect();
-        gsap.set(lamp, { x: box.width * 0.72, y: box.height * 0.45 });
-      }
-
-      const onMove = (e: MouseEvent) => {
-        if (!lamp) return;
-        const r = el.getBoundingClientRect();
-        gsap.to(lamp, {
-          x: e.clientX - r.left,
-          y: e.clientY - r.top,
-          duration: 0.5,
-          ease: "power3.out",
-          overwrite: "auto",
-        });
-      };
-
-      el.addEventListener("mousemove", onMove);
-      return () => {
-        el.removeEventListener("mousemove", onMove);
-      };
     },
     { scope: root },
   );
@@ -120,19 +74,23 @@ export function HomeClose({ stills = [] }: { stills?: string[] }) {
   return (
     <section
       ref={root}
-      className="close-block relative z-10 overflow-hidden bg-ink px-4 py-10 text-paper md:px-7 md:py-12"
+      data-nav-surface="ink"
+      className="close-block relative z-10 overflow-hidden text-paper"
     >
-      <div className="close-fx" aria-hidden>
-        <div className="close-hatch" />
-        <div className="close-iris" data-iris>
-          <span />
-          <span />
-          <span />
+      <div className="close-bg" aria-hidden>
+        <div data-close-media className="close-bg__media">
+          <Image
+            src="/home-close-bg.jpg"
+            alt=""
+            fill
+            priority={false}
+            sizes="100vw"
+            className="object-cover object-[42%_45%]"
+          />
         </div>
-        <div className="close-wash" />
-        <span className="close-spine">Collective</span>
-        <div className="close-grain" />
-        <div ref={spot} className="close-spot" />
+        <div className="close-bg__blue" />
+        <div className="close-bg__shade" />
+        <div className="close-bg__grain" />
       </div>
 
       <div className="close-shell">
@@ -140,7 +98,7 @@ export function HomeClose({ stills = [] }: { stills?: string[] }) {
           <div data-in className="close-kicker">
             <span>04</span>
             <span>Studio</span>
-            <span>{time}</span>
+            <span>Collective</span>
           </div>
 
           <h2 className="close-heading">
@@ -162,11 +120,6 @@ export function HomeClose({ stills = [] }: { stills?: string[] }) {
           </p>
 
           <div data-in className="close-actions">
-            <div className="close-chips">
-              <span>24 fps</span>
-              <span>Collective</span>
-              <span>Open gate</span>
-            </div>
             <div className="close-ctas">
               <Link href="/about" data-cursor="About" className="close-link">
                 About the studio
@@ -177,16 +130,12 @@ export function HomeClose({ stills = [] }: { stills?: string[] }) {
             </div>
           </div>
         </div>
-
-        <div className="close-stage-wrap" data-in>
-          <CollectiveStage stills={stills} />
-        </div>
       </div>
 
       <div data-in className="close-foot">
         <div className="flex items-center gap-3">
           <SafeImage src="/logo-white.png" alt="" className="h-8 w-auto" />
-          <p className="micro text-paper/55">Picsodian / Collective</p>
+          <p className="micro text-paper/70">Picsodian / Collective</p>
         </div>
         <a
           href="mailto:creatives@picsodianstudios.com"

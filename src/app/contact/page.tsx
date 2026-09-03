@@ -14,6 +14,7 @@ export default async function ContactPage() {
         email={studio.email}
         instagram={studio.instagram}
         twitter={studio.twitter}
+        linkedin={studio.linkedin}
         vimeo={studio.vimeo}
       />
     </PageReveal>

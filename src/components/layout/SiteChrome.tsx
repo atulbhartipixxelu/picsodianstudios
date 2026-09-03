@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -17,6 +17,18 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
   const isAdmin = pathname.startsWith("/admin");
   const [ready, setReady] = useState(false);
 
+  useLayoutEffect(() => {
+    const html = document.documentElement;
+    html.classList.toggle("is-home", pathname === "/");
+    html.classList.toggle("is-work", pathname === "/work");
+    html.classList.toggle("is-contact", pathname === "/contact");
+    return () => {
+      html.classList.remove("is-home");
+      html.classList.remove("is-work");
+      html.classList.remove("is-contact");
+    };
+  }, [pathname]);
+
   if (isAdmin) {
     return <div className="admin-shell min-h-screen bg-ink">{children}</div>;
   }
@@ -32,6 +44,8 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Preloader onComplete={markReady} />
+      {ready ? <div className="grain" aria-hidden /> : null}
+      {ready ? <CustomCursor /> : null}
       <div
         className={
           ready
@@ -39,11 +53,9 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
             : "pointer-events-none relative opacity-0"
         }
       >
-        {ready ? <div className="grain" aria-hidden /> : null}
-        {ready ? <CustomCursor /> : null}
-        <Nav />
         <SmoothScroll>
-          <main className="relative z-10 min-h-screen">{children}</main>
+          {ready ? <Nav /> : null}
+          <main className="site-main relative z-10 min-h-screen">{children}</main>
           <Footer />
         </SmoothScroll>
       </div>

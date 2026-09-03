@@ -10,6 +10,7 @@ const schema = z.object({
   email: z.union([z.string().email(), z.literal("")]).optional(),
   instagram: z.string().optional(),
   twitter: z.string().optional(),
+  linkedin: z.string().optional(),
   vimeo: z.string().optional(),
   about: z.string().optional(),
 });

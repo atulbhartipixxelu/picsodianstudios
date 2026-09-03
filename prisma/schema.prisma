@@ -60,6 +60,7 @@ model Setting {
   email          String @default("creatives@picsodianstudios.com")
   instagram      String @default("")
   twitter        String @default("")
+  linkedin       String @default("")
   vimeo          String @default("")
   about          String @default("")
 }
