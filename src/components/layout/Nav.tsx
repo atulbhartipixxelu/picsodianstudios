@@ -14,7 +14,9 @@ function surfaceIsLight(node: Element | null, pathname: string) {
   }
 
   if (!node) {
-    return pathname === "/work" || pathname === "/contact";
+    return (
+      pathname === "/work" || pathname === "/contact" || pathname === "/about"
+    );
   }
 
   const ink = node.closest(
@@ -27,7 +29,9 @@ function surfaceIsLight(node: Element | null, pathname: string) {
   );
   if (paper) return true;
 
-  return pathname === "/work" || pathname === "/contact";
+  return (
+    pathname === "/work" || pathname === "/contact" || pathname === "/about"
+  );
 }
 
 export function Nav() {
@@ -39,7 +43,10 @@ export function Nav() {
   const [frame, setFrame] = useState(0);
   const [scrolled, setScrolled] = useState(false);
   const [isLightNav, setIsLightNav] = useState(
-    () => pathname === "/work" || pathname === "/contact",
+    () =>
+      pathname === "/work" ||
+      pathname === "/contact" ||
+      pathname === "/about",
   );
 
   useEffect(() => {
@@ -57,7 +64,11 @@ export function Nav() {
   useEffect(() => {
     setOpen(false);
     setScrolled(false);
-    setIsLightNav(pathname === "/work" || pathname === "/contact");
+    setIsLightNav(
+      pathname === "/work" ||
+        pathname === "/contact" ||
+        pathname === "/about",
+    );
   }, [pathname]);
 
   useEffect(() => {
